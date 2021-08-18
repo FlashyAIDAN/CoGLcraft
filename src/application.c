@@ -4,7 +4,8 @@
 #include "utils/camera.h"
 #include "utils/texture.h"
 #include "utils/shader.h"
-#include "utils/vector.h"
+#include "utils/vectorf.h"
+#include "utils/vectori.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -127,10 +128,10 @@ int main(int argc, const char *argv[])
 		{ 2, 9, 11, 9, 2,  1 }  // BOTTOM
 	};
 
-	VECTOR_INIT(chunkVertices);
-	VECTOR_INIT(chunkIndices);
-	VECTOR_INIT(chunkColors);
-	VECTOR_INIT(chunkUVs);
+	VECTORF_INIT(chunkVertices);
+	VECTORI_INIT(chunkIndices);
+	VECTORF_INIT(chunkColors);
+	VECTORF_INIT(chunkUVs);
 	int indiceIndex = 0;
 	int x = 10;
 	int y = 0;
@@ -138,56 +139,46 @@ int main(int argc, const char *argv[])
 
 
 	int j = 0;
-	for(int i = 0; i < 6; i++)
+	for(int x = 0; x < 16; x++)
 	{
-		float val0 = vertices[i + j][0] + 1.0f;
-		float val1 = vertices[i + j][1] + 1.0f;		
-		float val2 = vertices[i + j][2] + 1.0f;		
-		float val3 = vertices[i + j + 1][0] + 1.0f;
-		float val4 = vertices[i + j + 1][1] + 1.0f;
-		float val5 = vertices[i + j + 1][2] + 1.0f;
+		for(int y = 0; y < 256; y++)
+		{
+			for(int z = 0; z < 16; z++)
+			{
+				j = 0;
+				for(int i = 0; i < 6; i++)
+				{
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][0] + x);
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][1] + y);
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][2] + z);
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][0] + x);
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][1] + y);
+					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][2] + z);
 
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j][0]);
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j][1]);
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j][2]);
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j + 1][0]);
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j + 1][1]);
-		chunkVertices.pfVectorAdd(&chunkVertices, &vertices[i + j + 1][2]);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
+					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
 
-		float r = 1.0f;
-		float g = 1.0f;
-		float b = 1.0f;
+					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j][0]);
+					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j][1]);
+					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j + 1][0]);
+					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j + 1][1]);
 
-		chunkColors.pfVectorAdd(&chunkColors, &r);
-		chunkColors.pfVectorAdd(&chunkColors, &g);
-		chunkColors.pfVectorAdd(&chunkColors, &b);
-
-		chunkColors.pfVectorAdd(&chunkColors, &r);
-		chunkColors.pfVectorAdd(&chunkColors, &g);
-		chunkColors.pfVectorAdd(&chunkColors, &b);
-
-		chunkUVs.pfVectorAdd(&chunkUVs, &uvs[i + j][0]);
-		chunkUVs.pfVectorAdd(&chunkUVs, &uvs[i + j][1]);
-
-		chunkUVs.pfVectorAdd(&chunkUVs, &uvs[i + j + 1][0]);
-		chunkUVs.pfVectorAdd(&chunkUVs, &uvs[i + j + 1][1]);
-
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][0] + indiceIndex);
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][1] + indiceIndex);
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][2] + indiceIndex);
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][3] + indiceIndex);
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][4] + indiceIndex);
-		chunkIndices.pfVectorAdd(&chunkIndices, &indices[i][5] + indiceIndex);
-		indiceIndex += 12;
-		j += 1;
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][0] + indiceIndex);
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][1] + indiceIndex);
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][2] + indiceIndex);
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][3] + indiceIndex);
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][4] + indiceIndex);
+					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][5] + indiceIndex);
+					j += 1;
+				}
+				indiceIndex += 12;
+			}
+		}
 	}
-
-	for (int i = 0; i < chunkVertices.pfVectorTotal(&chunkVertices); i++)
-    {
-        printf("%f\n", (float)((float *)(chunkVertices.vectorList.items))[100]);
-    }
-
-	printf("%f\n", (float)chunkVertices.vectorList.total);
 
 	unsigned int VBO, VAO, EBO, CBO, UVBO;
 	glGenVertexArrays(1, &VAO);
@@ -199,16 +190,16 @@ int main(int argc, const char *argv[])
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkVertices.pfVectorTotal(&chunkVertices) * sizeof(float), (float *)chunkVertices.vectorList.items[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunkVertices.pfVectorTotal(&chunkVertices) * sizeof(float), (const void *)chunkVertices.vectorList.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices.pfVectorTotal(&chunkIndices) * sizeof(float), (float *)chunkIndices.vectorList.items[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices.pfVectorTotal(&chunkIndices) * sizeof(float), (const void *)chunkIndices.vectorList.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, CBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkColors.pfVectorTotal(&chunkColors) * sizeof(float), (float *)chunkColors.vectorList.items [0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunkColors.pfVectorTotal(&chunkColors) * sizeof(float), (const void *)chunkColors.vectorList.items, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, UVBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkUVs.pfVectorTotal(&chunkUVs) * sizeof(float), (float *)chunkUVs.vectorList.items[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunkUVs.pfVectorTotal(&chunkUVs) * sizeof(float), (const void *)chunkUVs.vectorList.items, GL_STATIC_DRAW);
 
 	// position attribute
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -260,6 +251,11 @@ int main(int argc, const char *argv[])
 	glDeleteBuffers(1, &EBO);
 	glDeleteBuffers(1, &CBO);
 	glDeleteBuffers(1, &UVBO);
+
+	chunkVertices.pfVectorFree(&chunkVertices);
+	chunkIndices.pfVectorFree(&chunkIndices);
+	chunkColors.pfVectorFree(&chunkColors);
+	chunkUVs.pfVectorFree(&chunkUVs);
 
 	glfwTerminate();
 	return 0;
