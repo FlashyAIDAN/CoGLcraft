@@ -4,6 +4,7 @@
 // From: https://aticleworld.com/implement-vector-in-c/
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define VECTOR_INIT_CAPACITY 1
 #define UNDEFINE  -1
