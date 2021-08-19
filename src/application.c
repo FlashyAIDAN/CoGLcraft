@@ -4,8 +4,8 @@
 #include "utils/camera.h"
 #include "utils/texture.h"
 #include "utils/shader.h"
-#include "utils/vectorf.h"
-#include "utils/vectori.h"
+
+#include "chunk.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -35,6 +35,9 @@ float lastFrame = 0.0f;
 struct Camera camera;
 struct Texture2D texture;
 struct Shader shader;
+
+struct Chunk chunk;
+struct Chunk chunk1;
 
 bool debugLines = false;
 
@@ -72,147 +75,14 @@ int main(int argc, const char *argv[])
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	texture = CreateTextureData(GL_RGB, GL_RGB, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-	texture = MakeTexture("res/textures/dirt.jpg", &texture, true);
+	texture = MakeTexture("res/textures/texture_atlas.png", &texture, true);
 	shader = MakeShader("res/shaders/vertex.glsl", "res/shaders/fragment.glsl", NULL);
 	camera = MakeCamera(&shader, (vec3s){ 0.0f, 0.0f, 3.0f }, -90.0f, 0.0f, screenWidth, screenHeight);
 
-	float vertices[12][3] = 
-	{
-	 	{ 1.0f, 1.0f, 0.0f },
-	 	{ 1.0f, 0.0f, 0.0f },
-
-	 	{ 0.0f, 0.0f, 0.0f },
-	 	{ 0.0f, 1.0f, 0.0f },
-
-	 	{ 1.0f, 1.0f, 1.0f },
-	 	{ 1.0f, 0.0f, 1.0f },
-
-	 	{ 0.0f, 0.0f, 1.0f },
-	 	{ 0.0f, 1.0f, 1.0f },
-
-	 	{ 0.0f, 1.0f, 1.0f },
-	 	{ 1.0f, 0.0f, 1.0f },
-
-	 	{ 1.0f, 1.0f, 1.0f }, 
-	 	{ 0.0f, 0.0f, 1.0f }
-	};
-
-	float uvs[12][2] =
-	{
-		{ 1.0f, 1.0f },
-	 	{ 1.0f, 0.0f },
-
-	 	{ 0.0f, 0.0f },
-	 	{ 0.0f, 1.0f },
-
-	 	{ 0.0f, 1.0f },
-	 	{ 0.0f, 0.0f },
-
-		{ 1.0f, 0.0f },
-		{ 1.0f, 1.0f },
-
-		{ 0.0f, 0.0f },
-		{ 1.0f, 1.0f },
-
-		{ 1.0f, 0.0f },
-		{ 0.0f, 1.0f }
-	};
-
-	unsigned int indices[6][6] =
-	{
-		{ 7, 6, 5,  7, 5,  4 }, // FRONT
-		{ 0, 1, 3,  1, 2,  3 }, // BACK
-		{ 2, 6, 7,  7, 3,  2 }, // LEFT
-		{ 1, 4, 5,  4, 1,  0 }, // RIGHT
-		{ 0, 3, 10, 8, 10, 3 }, // TOP
-		{ 2, 9, 11, 9, 2,  1 }  // BOTTOM
-	};
-
-	VECTORF_INIT(chunkVertices);
-	VECTORI_INIT(chunkIndices);
-	VECTORF_INIT(chunkColors);
-	VECTORF_INIT(chunkUVs);
-	int indiceIndex = 0;
-	int x = 10;
-	int y = 0;
-	int z = 0;
-
-
-	int j = 0;
-	for(int x = 0; x < 16; x++)
-	{
-		for(int y = 0; y < 256; y++)
-		{
-			for(int z = 0; z < 16; z++)
-			{
-				j = 0;
-				for(int i = 0; i < 6; i++)
-				{
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][0] + x);
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][1] + y);
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j][2] + z);
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][0] + x);
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][1] + y);
-					chunkVertices.pfVectorAdd(&chunkVertices, vertices[i + j + 1][2] + z);
-
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-					chunkColors.pfVectorAdd(&chunkColors, 1.0f);
-
-					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j][0]);
-					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j][1]);
-					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j + 1][0]);
-					chunkUVs.pfVectorAdd(&chunkUVs, uvs[i + j + 1][1]);
-
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][0] + indiceIndex);
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][1] + indiceIndex);
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][2] + indiceIndex);
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][3] + indiceIndex);
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][4] + indiceIndex);
-					chunkIndices.pfVectorAdd(&chunkIndices, indices[i][5] + indiceIndex);
-					j += 1;
-				}
-				indiceIndex += 12;
-			}
-		}
-	}
-
-	unsigned int VBO, VAO, EBO, CBO, UVBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	glGenBuffers(1, &CBO);
-	glGenBuffers(1, &UVBO);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkVertices.pfVectorTotal(&chunkVertices) * sizeof(float), (const void *)chunkVertices.vectorList.items, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkIndices.pfVectorTotal(&chunkIndices) * sizeof(float), (const void *)chunkIndices.vectorList.items, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, CBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkColors.pfVectorTotal(&chunkColors) * sizeof(float), (const void *)chunkColors.vectorList.items, GL_STATIC_DRAW);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, UVBO);
-	glBufferData(GL_ARRAY_BUFFER, chunkUVs.pfVectorTotal(&chunkUVs) * sizeof(float), (const void *)chunkUVs.vectorList.items, GL_STATIC_DRAW);
-
-	// position attribute
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	// color attribute
-	glBindBuffer(GL_ARRAY_BUFFER, CBO);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	// texture coord attribute
-	glBindBuffer(GL_ARRAY_BUFFER, UVBO);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(2);
+	chunk = MakeChunk(0, 0, 0);
+	CreateChunk(&chunk);
+	chunk1 = MakeChunk(1, 0, 0);
+	CreateChunk(&chunk1);
 
 	SetShaderInteger(&shader, "texture1", 0, true);
 	SetShaderMatrix4(&shader, "projection", camera.viewProjection.projection, false);
@@ -231,31 +101,15 @@ int main(int argc, const char *argv[])
 
 		UpdateCameraVectors(&camera, &shader);
 
-		mat4s model = { 1.0f, 0.0f, 0.0f, 0.0f,
-                        0.0f, 1.0f, 0.0f, 0.0f,
-                        0.0f, 0.0f, 1.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f, 1.0f };
-
-		model = glms_translate(model, (vec3s){ 0.0f, 0.0f, 0.0f });
-		SetShaderMatrix4(&shader, "model", model, false);
-
 		BindTexture(&texture);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, chunkIndices.pfVectorTotal(&chunkIndices), GL_UNSIGNED_INT, 0);
+		RenderChunk(&chunk, &shader);
+		RenderChunk(&chunk1, &shader);
 
 		glfwSwapBuffers(window);
 	}
 
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
-	glDeleteBuffers(1, &CBO);
-	glDeleteBuffers(1, &UVBO);
-
-	chunkVertices.pfVectorFree(&chunkVertices);
-	chunkIndices.pfVectorFree(&chunkIndices);
-	chunkColors.pfVectorFree(&chunkColors);
-	chunkUVs.pfVectorFree(&chunkUVs);
+	DeleteChunk(&chunk);
+	DeleteChunk(&chunk1);
 
 	glfwTerminate();
 	return 0;
