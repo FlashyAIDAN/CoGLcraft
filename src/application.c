@@ -151,6 +151,15 @@ void ProcessInput()
 		camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
 	if(GetKey(GLFW_KEY_E))
 		camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
+
+	if(GetKeyDown(GLFW_KEY_EQUAL))
+		camera.speed++;
+	if(GetKeyDown(GLFW_KEY_MINUS))
+	{
+		camera.speed--;
+		if(camera.speed <= 1.0f)
+			camera.speed = 1.0f;
+	}
 }
 
 bool GetKey(int keyCode)

@@ -31,7 +31,11 @@ struct Chunk
 
 struct Block
 {
+    const char *name;
+
     uint8_t ID, frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
+
+    bool isInvisible;
 };
 
 struct Chunk MakeChunk(int x, int y, int z);
