@@ -2,7 +2,6 @@
 #define CAMERA_H
 
 #include <glad/glad.h>
-#include <cglm/cglm.h>
 #include <cglm/struct.h>
 
 #include "shader.h"

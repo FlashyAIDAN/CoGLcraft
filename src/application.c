@@ -4,8 +4,7 @@
 #include "utils/camera.h"
 #include "utils/texture.h"
 #include "utils/shader.h"
-
-#include "chunk.h"
+#include "world.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -36,10 +35,9 @@ struct Camera camera;
 struct Texture2D texture;
 struct Shader shader;
 
-struct Chunk chunk;
-struct Chunk chunk1;
-
 bool debugLines = false;
+
+int seed = 69420;
 
 int main(int argc, const char *argv[])
 {
@@ -74,15 +72,14 @@ int main(int argc, const char *argv[])
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	texture = CreateTextureData(GL_RGB, GL_RGB, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-	texture = MakeTexture("res/textures/texture_atlas.png", &texture, true);
-	shader = MakeShader("res/shaders/vertex.glsl", "res/shaders/fragment.glsl", NULL);
-	camera = MakeCamera(&shader, (vec3s){ 0.0f, 0.0f, 3.0f }, -90.0f, 0.0f, screenWidth, screenHeight);
+	SimplexInit(seed);
 
-	chunk = MakeChunk(0, 0, 0);
-	CreateChunk(&chunk);
-	chunk1 = MakeChunk(1, 0, 0);
-	CreateChunk(&chunk1);
+	texture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	texture = MakeTexture("res/textures/testatlas_from_google.png", &texture, true);
+	shader = MakeShader("res/shaders/vertex.glsl", "res/shaders/fragment.glsl", NULL);
+	camera = MakeCamera(&shader, (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z }, -90.0f, 0.0f, screenWidth, screenHeight);
+
+	WorldStart();
 
 	SetShaderInteger(&shader, "texture1", 0, true);
 	SetShaderMatrix4(&shader, "projection", camera.viewProjection.projection, false);
@@ -101,15 +98,13 @@ int main(int argc, const char *argv[])
 
 		UpdateCameraVectors(&camera, &shader);
 
-		BindTexture(&texture);
-		RenderChunk(&chunk, &shader);
-		RenderChunk(&chunk1, &shader);
+		WorldRender(&texture, &shader);
 
 		glfwSwapBuffers(window);
 	}
 
-	DeleteChunk(&chunk);
-	DeleteChunk(&chunk1);
+	SimplexFree();
+	WorldDelete();
 
 	glfwTerminate();
 	return 0;
@@ -151,6 +146,15 @@ void ProcessInput()
 		camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
 	if(GetKey(GLFW_KEY_E))
 		camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
+
+	if(GetKeyDown(GLFW_KEY_EQUAL))
+		camera.speed++;
+	if(GetKeyDown(GLFW_KEY_MINUS))
+	{
+		camera.speed--;
+		if(camera.speed <= 1.0f)
+			camera.speed = 1.0f;
+	}
 }
 
 bool GetKey(int keyCode)

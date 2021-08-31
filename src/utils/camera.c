@@ -39,7 +39,7 @@ struct Camera MakeCamera(struct Shader *shader, vec3s position, float yaw, float
     camera.yaw = yaw;
     camera.pitch = pitch;
     camera.nearZ = 0.1f;
-    camera.farZ = 100.0f;
+    camera.farZ = 1000.0f;
 
     UpdateCameraPerspective(&camera, shader, width, height);
 

@@ -1,56 +1,56 @@
 #include "chunk.h"
+#include "world.h"
 
-float verticeData[12][3] = 
+float verticeData[8][3] = 
 {
- 	{ 1.0f, 1.0f, 0.0f },
- 	{ 1.0f, 0.0f, 0.0f },
- 	{ 0.0f, 0.0f, 0.0f },
- 	{ 0.0f, 1.0f, 0.0f },
- 	{ 1.0f, 1.0f, 1.0f },
- 	{ 1.0f, 0.0f, 1.0f },
- 	{ 0.0f, 0.0f, 1.0f },
- 	{ 0.0f, 1.0f, 1.0f },
- 	{ 0.0f, 1.0f, 1.0f },
- 	{ 1.0f, 0.0f, 1.0f },
- 	{ 1.0f, 1.0f, 1.0f }, 
- 	{ 0.0f, 0.0f, 1.0f }
-};
-
-float uvData[12][2] =
-{
-	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET, 	1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET },
- 	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET, 	0.0f + UV_OFFSET },
- 	{ 0.0f + UV_OFFSET, 								0.0f + UV_OFFSET },
- 	{ 0.0f + UV_OFFSET, 								1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET },
- 	{ 0.0f + UV_OFFSET, 								1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET },
- 	{ 0.0f + UV_OFFSET, 								0.0f + UV_OFFSET },
-	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET, 	0.0f + UV_OFFSET },
-	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET, 	1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET },
-	{ 0.0f + UV_OFFSET,									0.0f + UV_OFFSET },
-	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET,  1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET },
-	{ 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET,  0.0f + UV_OFFSET },
-	{ 0.0f + UV_OFFSET, 								1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS - UV_OFFSET }
+ 	{0, 0, 0},
+	{1, 0, 0},
+    {1, 1, 0},
+    {0, 1, 0},
+	{0, 0, 1},
+    {1, 0, 1},
+    {1, 1, 1},
+    {0, 1, 1}
 };
 
 unsigned int indiceData[6][6] =
 {
-	{ 7, 6, 5,  7, 5,  4 }, // FRONT
-	{ 0, 1, 3,  1, 2,  3 }, // BACK
-	{ 2, 6, 7,  7, 3,  2 }, // LEFT
-	{ 1, 4, 5,  4, 1,  0 }, // RIGHT
-	{ 0, 3, 10, 8, 10, 3 }, // TOP
-	{ 2, 9, 11, 9, 2,  1 }  // BOTTOM
+    {5, 6, 4, 7}, // Front Face
+	{0, 3, 1, 2}, // Back Face
+    {4, 7, 0, 3}, // Left Face
+    {1, 2, 5, 6}, // Right Face
+    {3, 7, 2, 6}, // Top Face
+    {1, 5, 0, 4}  // Bottom Face
 };
 
-struct Block blocks[2] =
+int normals[6][3] = 
 {
-	{0, 240, 240, 240, 241, 240, 240},
-	{1, 241, 243, 241, 243, 242, 240}	
+    { 0,  0,  1},
+    { 0,  0, -1},
+    {-1,  0,  0},
+    { 1,  0,  0},
+    { 0,  1,  0},
+    { 0, -1,  0}
+};
+
+struct Voxel voxels[8] =
+{
+	{"Air", -1, -1, -1, -1, -1, -1, true, true},
+	{"Dirt", 242, 242, 242, 242, 242, 242, false, false},
+	{"Grass", 243, 243, 243, 243, 240, 242, false, false},
+	{"Stone", 241, 241, 241, 241, 241, 241, false, false},
+	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false},
+	{"Log", 228, 228, 228, 228, 229, 229, false, false},
+	{"Leaf", 196, 196, 196, 196, 196, 196, false, true},
+	{"Glass", 193, 193, 193, 193, 193, 193, false, true}
 };
 
 struct Chunk MakeChunk(int x, int y, int z)
 {
     struct Chunk chunk;
+	chunk.x = x;
+	chunk.z = z;
+	
     chunk.VBO = 0;
     chunk.VAO = 0;
     chunk.EBO = 0;
@@ -63,97 +63,178 @@ struct Chunk MakeChunk(int x, int y, int z)
     return chunk;
 }
 
-void CreateChunk(struct Chunk *chunk)
+uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
 {
-    CreateChunkMesh(chunk);
-    CreateChunkBufferData(chunk);
+	//printf("%i\n",(int)floor(42 * Get2DPerlin(x, z, 0, 0.25)) + 42);
+	// If bottom block of chunk, return bedrock.
+	if (y == 0)
+		return 4;
+
+	/* BASIC TERRAIN PASS */
+
+	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(chunk->position.x + x, chunk->position.z + z, 0, 0.25)));
+	uint8_t voxelValue = 0;
+
+	if (y == terrainHeight)
+		voxelValue =  2;
+	else if (y < terrainHeight && y > terrainHeight - 4)
+		voxelValue = 1;
+	else if (y > terrainHeight)
+		return 0;
+	else
+		voxelValue = 3;
+	
+	return voxelValue;
+	
+	// if(y == CHUNK_SIZE_Y - 161)
+	// 	return 2;
+	// else if(y <= CHUNK_SIZE_Y - 162 && y >= CHUNK_SIZE_Y - 165)
+	// 	return 1;
+	// else if(y <= CHUNK_SIZE_Y - 166 && y >= 2)
+	// 	return 3;
+	// else if(y <= 1)
+	// 	return 4;
+	// else if(y >= CHUNK_SIZE_Y - 160 && y <= CHUNK_SIZE_Y - 155 && x == CHUNK_SIZE_X / 2 && z == CHUNK_SIZE_Z / 2)
+	// 	return 5;
+	// else if(y == CHUNK_SIZE_Y - 160 && x == (CHUNK_SIZE_X / 2) + 1 && z == CHUNK_SIZE_Z / 2)
+	// 	return 2;
+	// else if((y == CHUNK_SIZE_Y - 154 && x == CHUNK_SIZE_X / 2 && z == CHUNK_SIZE_Z / 2) || (y == CHUNK_SIZE_Y - 155 && ((x == (CHUNK_SIZE_X / 2) + 1 && z == CHUNK_SIZE_Z / 2) || (x == (CHUNK_SIZE_X / 2) - 1 && z == CHUNK_SIZE_Z / 2) || (x == CHUNK_SIZE_X / 2 && z == (CHUNK_SIZE_Z / 2) + 1) || (x == CHUNK_SIZE_X / 2 && z == (CHUNK_SIZE_Z / 2) - 1))))
+	// 	return 6;
+	// else
+	// 	return 0;
 }
 
-void CreateChunkMesh(struct Chunk *chunk)
+uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
 {
-    VectorfInit(&chunk->vertices);
-    VectorfInit(&chunk->colors);
-    VectorfInit(&chunk->uvs);
-    VectoriInit(&chunk->indices);
-	for(int x = 0; x < CHUNK_SIZE_X; x++)
-	{
-		for(int y = 0; y < CHUNK_SIZE_Y; y++)
-		{
-			for(int z = 0; z < CHUNK_SIZE_Z; z++)
-			{
-				CreateVoxel(chunk, x, y, z, 0);
-			}
-		}
-	}
+	if(x < 0 || x  > CHUNK_SIZE_X - 1 || y  < 0 || y  > CHUNK_SIZE_Y - 1 || z  < 0 || z  > CHUNK_SIZE_Z - 1)
+		return WorldGetVoxel(x + chunk->position.x, y + chunk->position.y, z + chunk->position.z);
+	else
+		return chunk->voxels[x][y][z];
 }
+
+// void CreateChunk(struct Chunk *chunk)
+// {
+//     CreateChunkData(chunk);
+//     CreateChunkBufferData(chunk);
+// }
+
+// void CreateChunkData(struct Chunk *chunk)
+// {
+//     VectorfInit(&chunk->vertices);
+//     VectorfInit(&chunk->colors);
+//     VectorfInit(&chunk->uvs);
+//     VectoriInit(&chunk->indices);
+
+// 	for(int x = 0; x < CHUNK_SIZE_X; x++)
+// 	{
+// 		for(int y = 0; y < CHUNK_SIZE_Y; y++)
+// 		{
+// 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
+// 			{
+// 				chunk->voxels[x][y][z] = GenerateVoxel(chunk, x, y, z);
+// 			}
+// 		}
+// 	}
+
+// 	for(int x = 0; x < CHUNK_SIZE_X; x++)
+// 	{
+// 		for(int y = 0; y < CHUNK_SIZE_Y; y++)
+// 		{
+// 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
+// 			{
+// 				CreateVoxel(chunk, x, y, z, GenerateVoxel(chunk, x, y, z));
+// 			}
+// 		}
+// 	}
+// }
 
 void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 {
-    int j = 0;
-	for(int i = 0; i < 6; i++)
+	if(!voxels[ID].isInvisible)
 	{
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j][0] + x);
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j][1] + y);
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j][2] + z);
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j + 1][0] + x);
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j + 1][1] + y);
-		chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[i + j + 1][2] + z);
-
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-		chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-
-		uint8_t textureID = 0;
-		switch (i)
+		for(int i = 0; i < 6; i++)
 		{
-		case 0:
-			textureID = blocks[ID].frontFace;
-			break;
-		case 1:
-			textureID = blocks[ID].backFace;
-			break;
-		case 2:
-			textureID = blocks[ID].leftFace;
-			break;
-		case 3:
-			textureID = blocks[ID].rightFace;
-			break;
-		case 4:
-			textureID = blocks[ID].topFace;
-			break;
-		case 5:
-			textureID = blocks[ID].bottomFace;
-			break;
-		
-		default:
-			break;
+				if(voxels[GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2])].renderNeighborFaces)
+				{
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][0] + x);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][1] + y);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][2] + z);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][0] + x);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][1] + y);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][2] + z);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][0] + x);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][1] + y);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][2] + z);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][0] + x);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][1] + y);
+					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][2] + z);
+
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+
+					uint8_t textureID = 0;
+					switch (i)
+					{
+					case 0:
+						textureID = voxels[ID].frontFace;
+						break;
+					case 1:
+						textureID = voxels[ID].backFace;
+						break;
+					case 2:
+						textureID = voxels[ID].leftFace;
+						break;
+					case 3:
+						textureID = voxels[ID].rightFace;
+						break;
+					case 4:
+						textureID = voxels[ID].topFace;
+						break;
+					case 5:
+						textureID = voxels[ID].bottomFace;
+						break;
+					
+					default:
+						break;
+					}
+
+					float uvy = (float)(textureID / TEXTURE_ATLAS_SIZE_IN_BLOCKS);
+					float uvx = (float)(textureID - (uvy * TEXTURE_ATLAS_SIZE_IN_BLOCKS));
+
+					float normalized = 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
+
+					uvx *= normalized;
+					uvy *= normalized;
+
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + normalized - UV_OFFSET);
+
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex);
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 1);
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 2);
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 2);
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 1);
+					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 3);
+					chunk->indiceIndex += 4;
+				}
 		}
-
-		//printf("%i\n", (int)textureID);
-
-		float uvy = (float)(textureID / TEXTURE_ATLAS_SIZE_IN_BLOCKS);
-		float uvx = (float)(textureID - (uvy * TEXTURE_ATLAS_SIZE_IN_BLOCKS));
-
-		uvx *= 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
-		uvy *= 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
-
-		chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + uvData[i + j][0]);
-		chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + uvData[i + j][1]);
-		chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + uvData[i + j + 1][0]);
-		chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + uvData[i + j + 1][1]);
-
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][0] + chunk->indiceIndex);
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][1] + chunk->indiceIndex);
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][2] + chunk->indiceIndex);
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][3] + chunk->indiceIndex);
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][4] + chunk->indiceIndex);
-		chunk->indices.pfVectorAdd(&chunk->indices, indiceData[i][5] + chunk->indiceIndex);
-		j += 1;
 	}
-	chunk->indiceIndex += 12;
 }
 
 void CreateChunkBufferData(struct Chunk *chunk)
@@ -218,4 +299,38 @@ void RenderChunk(struct Chunk *chunk, struct Shader *shader)
 
 	glBindVertexArray(chunk->VAO);
 	glDrawElements(GL_TRIANGLES, chunk->indices.pfVectorTotal(&chunk->indices), GL_UNSIGNED_INT, 0);
+}
+
+void CreateVoxels(struct Chunk *chunk)
+{
+	for(int x = 0; x < CHUNK_SIZE_X; x++)
+	{
+		for(int y = 0; y < CHUNK_SIZE_Y; y++)
+		{
+			for(int z = 0; z < CHUNK_SIZE_Z; z++)
+			{
+				chunk->voxels[x][y][z] = GenerateVoxel(chunk, x, y, z);
+			}
+		}
+	}
+}
+void CreateVertices(struct Chunk *chunk)
+{
+	VectorfInit(&chunk->vertices);
+    VectorfInit(&chunk->colors);
+    VectorfInit(&chunk->uvs);
+    VectoriInit(&chunk->indices);
+
+	
+
+	for(int x = 0; x < CHUNK_SIZE_X; x++)
+	{
+		for(int y = 0; y < CHUNK_SIZE_Y; y++)
+		{
+			for(int z = 0; z < CHUNK_SIZE_Z; z++)
+			{
+				CreateVoxel(chunk, x, y, z, GenerateVoxel(chunk, x, y, z));
+			}
+		}
+	}
 }
