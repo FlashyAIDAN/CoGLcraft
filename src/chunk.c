@@ -1,6 +1,9 @@
 #include "chunk.h"
 #include "world.h"
 
+defineFuntionsVector(float, 0);
+defineFuntionsVector(int, 0);
+
 float verticeData[8][3] = 
 {
  	{0, 0, 0},
@@ -106,7 +109,7 @@ uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
 
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
 {
-	if(x < 0 || x  > CHUNK_SIZE_X - 1 || y  < 0 || y  > CHUNK_SIZE_Y - 1 || z  < 0 || z  > CHUNK_SIZE_Z - 1)
+	if(!IsVoxelInChunk(chunk, x, y, z))
 		return WorldGetVoxel(x + chunk->position.x, y + chunk->position.y, z + chunk->position.z);
 	else
 		return chunk->voxels[x][y][z];
@@ -156,31 +159,31 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 		{
 				if(voxels[GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2])].renderNeighborFaces)
 				{
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][0] + x);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][1] + y);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][0]][2] + z);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][0] + x);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][1] + y);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][1]][2] + z);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][0] + x);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][1] + y);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][2]][2] + z);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][0] + x);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][1] + y);
-					chunk->vertices.pfVectorAdd(&chunk->vertices, verticeData[indiceData[i][3]][2] + z);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + x);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + y);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + z);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][0] + x);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][1] + y);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][2] + z);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][0] + x);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][1] + y);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][2] + z);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][0] + x);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][1] + y);
+					chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][2] + z);
 
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
-					chunk->colors.pfVectorAdd(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
 
 					uint8_t textureID = 0;
 					switch (i)
@@ -216,21 +219,21 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 					uvx *= normalized;
 					uvy *= normalized;
 
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + normalized - UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + normalized - UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvx + normalized - UV_OFFSET);
-					chunk->uvs.pfVectorAdd(&chunk->uvs, uvy + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
+					chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
 
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex);
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 1);
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 2);
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 2);
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 1);
-					chunk->indices.pfVectorAdd(&chunk->indices, chunk->indiceIndex + 3);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
+					chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 3);
 					chunk->indiceIndex += 4;
 				}
 		}
@@ -248,16 +251,16 @@ void CreateChunkBufferData(struct Chunk *chunk)
 	glBindVertexArray(chunk->VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->VBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->vertices.pfVectorTotal(&chunk->vertices) * sizeof(float), (const void *)chunk->vertices.vectorList.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunk->vertices.pfVectorTotalfloat(&chunk->vertices) * sizeof(float), (const void *)chunk->vertices.vectorListfloat.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk->indices.pfVectorTotal(&chunk->indices) * sizeof(int), (const void *)chunk->indices.vectorList.items, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk->indices.pfVectorTotalint(&chunk->indices) * sizeof(int), (const void *)chunk->indices.vectorListint.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->CBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->colors.pfVectorTotal(&chunk->colors) * sizeof(float), (const void *)chunk->colors.vectorList.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunk->colors.pfVectorTotalfloat(&chunk->colors) * sizeof(float), (const void *)chunk->colors.vectorListfloat.items, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->UVBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->uvs.pfVectorTotal(&chunk->uvs) * sizeof(float), (const void *)chunk->uvs.vectorList.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, chunk->uvs.pfVectorTotalfloat(&chunk->uvs) * sizeof(float), (const void *)chunk->uvs.vectorListfloat.items, GL_STATIC_DRAW);
 
 	// position attribute
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->VBO);
@@ -281,10 +284,10 @@ void DeleteChunk(struct Chunk *chunk)
 	glDeleteBuffers(1, &chunk->CBO);
 	glDeleteBuffers(1, &chunk->UVBO);
 
-	chunk->vertices.pfVectorFree(&chunk->vertices);
-	chunk->indices.pfVectorFree(&chunk->indices);
-	chunk->colors.pfVectorFree(&chunk->colors);
-	chunk->uvs.pfVectorFree(&chunk->uvs);
+	chunk->vertices.pfVectorFreefloat(&chunk->vertices);
+	chunk->indices.pfVectorFreeint(&chunk->indices);
+	chunk->colors.pfVectorFreefloat(&chunk->colors);
+	chunk->uvs.pfVectorFreefloat(&chunk->uvs);
 }
 
 void RenderChunk(struct Chunk *chunk, struct Shader *shader)
@@ -298,7 +301,7 @@ void RenderChunk(struct Chunk *chunk, struct Shader *shader)
 	SetShaderMatrix4(shader, "model", model, false);
 
 	glBindVertexArray(chunk->VAO);
-	glDrawElements(GL_TRIANGLES, chunk->indices.pfVectorTotal(&chunk->indices), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, chunk->indices.pfVectorTotalint(&chunk->indices), GL_UNSIGNED_INT, 0);
 }
 
 void CreateVoxels(struct Chunk *chunk)
@@ -316,10 +319,10 @@ void CreateVoxels(struct Chunk *chunk)
 }
 void CreateVertices(struct Chunk *chunk)
 {
-	VectorfInit(&chunk->vertices);
-    VectorfInit(&chunk->colors);
-    VectorfInit(&chunk->uvs);
-    VectoriInit(&chunk->indices);
+	VectorInitfloat(&chunk->vertices);
+    VectorInitfloat(&chunk->colors);
+    VectorInitfloat(&chunk->uvs);
+    VectorInitint(&chunk->indices);
 
 	
 
@@ -333,4 +336,12 @@ void CreateVertices(struct Chunk *chunk)
 			}
 		}
 	}
+}
+
+bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z)
+{
+	if (x < 0 || x > CHUNK_SIZE_X - 1 || y < 0 || y > CHUNK_SIZE_Y - 1 || z < 0 || z > CHUNK_SIZE_Z - 1)
+		return false;
+	else
+		return true;
 }

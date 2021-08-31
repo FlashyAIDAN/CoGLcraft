@@ -6,6 +6,8 @@
 #include "utils/shader.h"
 #include "world.h"
 
+#include <stb_image.h>
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -38,6 +40,9 @@ struct Shader shader;
 bool debugLines = false;
 
 int seed = 69420;
+
+ivec2s currentChunk = {0, 0};
+ivec2s oldChunk = {0, 0};
 
 int main(int argc, const char *argv[])
 {
@@ -72,6 +77,17 @@ int main(int argc, const char *argv[])
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Initialization Background
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glfwSwapBuffers(window);
+	
+	// Set Icon
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("res/icons/first.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
+
 	SimplexInit(seed);
 
 	texture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
@@ -84,6 +100,9 @@ int main(int argc, const char *argv[])
 	SetShaderInteger(&shader, "texture1", 0, true);
 	SetShaderMatrix4(&shader, "projection", camera.viewProjection.projection, false);
 
+	currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
+	oldChunk = currentChunk;
+
 	while(!glfwWindowShouldClose(window))
 	{
 		currentFrame = glfwGetTime();
@@ -95,6 +114,15 @@ int main(int argc, const char *argv[])
 
 		glClearColor(0.25f, 0.25f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Get Current Chunk
+		printf("Current Chunk(X: %i, Z: %i)\n", currentChunk.x, currentChunk.y);
+		currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
+		if(oldChunk.x != currentChunk.x || oldChunk.y != currentChunk.y)
+		{
+			oldChunk = currentChunk;
+			UpdateViewDistance(currentChunk);
+		}
 
 		UpdateCameraVectors(&camera, &shader);
 
