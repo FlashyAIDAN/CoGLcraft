@@ -48,22 +48,23 @@ struct Voxel voxels[8] =
 	{"Glass", 193, 193, 193, 193, 193, 193, false, true}
 };
 
-struct Chunk MakeChunk(int x, int y, int z)
+void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 {
-    struct Chunk chunk;
-	chunk.x = x;
-	chunk.z = z;
+	memset(chunk, 0, sizeof(struct Chunk));
+	chunk->x = x;
+	chunk->z = z;
 	
-    chunk.VBO = 0;
-    chunk.VAO = 0;
-    chunk.EBO = 0;
-    chunk.CBO = 0;
-    chunk.UVBO = 0;
-    chunk.indiceIndex = 0;
+    chunk->VBO = 0;
+    chunk->VAO = 0;
+    chunk->EBO = 0;
+    chunk->CBO = 0;
+    chunk->UVBO = 0;
+    chunk->indiceIndex = 0;
 
-    chunk.position = (vec3s){(float)x * CHUNK_SIZE_X, (float)y * CHUNK_SIZE_Y, (float)z * CHUNK_SIZE_Z};
+	//printf("%i", x);
+	//printf("%i", chunk->x);
 
-    return chunk;
+    chunk->position = (vec3s){(float)x * CHUNK_SIZE_X, (float)y * CHUNK_SIZE_Y, (float)z * CHUNK_SIZE_Z};
 }
 
 uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
@@ -88,23 +89,6 @@ uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
 		voxelValue = 3;
 	
 	return voxelValue;
-	
-	// if(y == CHUNK_SIZE_Y - 161)
-	// 	return 2;
-	// else if(y <= CHUNK_SIZE_Y - 162 && y >= CHUNK_SIZE_Y - 165)
-	// 	return 1;
-	// else if(y <= CHUNK_SIZE_Y - 166 && y >= 2)
-	// 	return 3;
-	// else if(y <= 1)
-	// 	return 4;
-	// else if(y >= CHUNK_SIZE_Y - 160 && y <= CHUNK_SIZE_Y - 155 && x == CHUNK_SIZE_X / 2 && z == CHUNK_SIZE_Z / 2)
-	// 	return 5;
-	// else if(y == CHUNK_SIZE_Y - 160 && x == (CHUNK_SIZE_X / 2) + 1 && z == CHUNK_SIZE_Z / 2)
-	// 	return 2;
-	// else if((y == CHUNK_SIZE_Y - 154 && x == CHUNK_SIZE_X / 2 && z == CHUNK_SIZE_Z / 2) || (y == CHUNK_SIZE_Y - 155 && ((x == (CHUNK_SIZE_X / 2) + 1 && z == CHUNK_SIZE_Z / 2) || (x == (CHUNK_SIZE_X / 2) - 1 && z == CHUNK_SIZE_Z / 2) || (x == CHUNK_SIZE_X / 2 && z == (CHUNK_SIZE_Z / 2) + 1) || (x == CHUNK_SIZE_X / 2 && z == (CHUNK_SIZE_Z / 2) - 1))))
-	// 	return 6;
-	// else
-	// 	return 0;
 }
 
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
@@ -114,42 +98,6 @@ uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
 	else
 		return chunk->voxels[x][y][z];
 }
-
-// void CreateChunk(struct Chunk *chunk)
-// {
-//     CreateChunkData(chunk);
-//     CreateChunkBufferData(chunk);
-// }
-
-// void CreateChunkData(struct Chunk *chunk)
-// {
-//     VectorfInit(&chunk->vertices);
-//     VectorfInit(&chunk->colors);
-//     VectorfInit(&chunk->uvs);
-//     VectoriInit(&chunk->indices);
-
-// 	for(int x = 0; x < CHUNK_SIZE_X; x++)
-// 	{
-// 		for(int y = 0; y < CHUNK_SIZE_Y; y++)
-// 		{
-// 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
-// 			{
-// 				chunk->voxels[x][y][z] = GenerateVoxel(chunk, x, y, z);
-// 			}
-// 		}
-// 	}
-
-// 	for(int x = 0; x < CHUNK_SIZE_X; x++)
-// 	{
-// 		for(int y = 0; y < CHUNK_SIZE_Y; y++)
-// 		{
-// 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
-// 			{
-// 				CreateVoxel(chunk, x, y, z, GenerateVoxel(chunk, x, y, z));
-// 			}
-// 		}
-// 	}
-// }
 
 void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 {
@@ -312,11 +260,13 @@ void CreateVoxels(struct Chunk *chunk)
 		{
 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
 			{
+				//printf("%i", chunk->x);
 				chunk->voxels[x][y][z] = GenerateVoxel(chunk, x, y, z);
 			}
 		}
 	}
 }
+
 void CreateVertices(struct Chunk *chunk)
 {
 	VectorInitfloat(&chunk->vertices);
@@ -332,7 +282,7 @@ void CreateVertices(struct Chunk *chunk)
 		{
 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				CreateVoxel(chunk, x, y, z, GenerateVoxel(chunk, x, y, z));
+				CreateVoxel(chunk, x, y, z, chunk->voxels[x][y][z]);
 			}
 		}
 	}

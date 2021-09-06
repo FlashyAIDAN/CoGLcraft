@@ -9,6 +9,7 @@
 #include "utils/shader.h"
 #include "utils/vector.h"
 
+#include <string.h>
 #include <stdint.h>
 
 #define CHUNK_SIZE_X 16
@@ -42,14 +43,12 @@ struct Voxel
     bool isInvisible, renderNeighborFaces;
 };
 
-struct Chunk MakeChunk(int x, int y, int z);
 
 uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z);
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 
-//void CreateChunkData(struct Chunk *chunk);
+void MakeChunk(struct Chunk *chunk, int x, int y, int z);
 void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID);
-//void CreateChunk(struct Chunk *chunk);
 void CreateChunkBufferData(struct Chunk *chunk);
 void DeleteChunk(struct Chunk *chunk);
 void RenderChunk(struct Chunk *chunk, struct Shader *shader);

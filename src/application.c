@@ -44,6 +44,8 @@ int seed = 69420;
 ivec2s currentChunk = {0, 0};
 ivec2s oldChunk = {0, 0};
 
+bool test_dontupdateviewdistance = false;
+
 int main(int argc, const char *argv[])
 {
 	glfwInit();
@@ -116,12 +118,13 @@ int main(int argc, const char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Get Current Chunk
-		printf("Current Chunk(X: %i, Z: %i)\n", currentChunk.x, currentChunk.y);
+		//printf("Current Chunk(X: %i, Z: %i)\n", currentChunk.x, currentChunk.y);
 		currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
 		if(oldChunk.x != currentChunk.x || oldChunk.y != currentChunk.y)
 		{
 			oldChunk = currentChunk;
-			UpdateViewDistance(currentChunk);
+			if(test_dontupdateviewdistance)
+				UpdateViewDistance(currentChunk);
 		}
 
 		UpdateCameraVectors(&camera, &shader);
@@ -155,6 +158,14 @@ void ProcessInput()
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			debugLines = false;
 		}
+	}
+
+	if(GetKeyDown(GLFW_KEY_F2))
+	{
+		if(!test_dontupdateviewdistance)
+			test_dontupdateviewdistance = true;
+		else
+			test_dontupdateviewdistance = false;
 	}
 
 	float velocity = camera.speed * deltaTime;

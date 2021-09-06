@@ -17,12 +17,13 @@ typedef struct // Testing purposes
 
 defineVector(ivec2s);
 
-struct Chunk chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z];
+vectorivec2s activeChunks;
+vectorivec2s testUpdateMesh;
 
-void WorldStart(vectorivec2s activeChunks, vectorivec2s meshToCreate);
+void WorldStart(/*vectorivec2s activeChunks, vectorivec2s meshToCreate*/);
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
 void WorldDelete();
-void UpdateViewDistance(ivec2s currentChunk, vectorivec2s activeChunks, vectorivec2s meshToCreate);
+void UpdateViewDistance(ivec2s currentChunk/*, vectorivec2s activeChunks, vectorivec2s meshToCreate*/);
 
 uint8_t WorldGetVoxel(int x, int y, int z);
 
