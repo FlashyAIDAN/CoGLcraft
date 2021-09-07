@@ -45,6 +45,8 @@ int seed = 69420;
 ivec2s currentChunk = {0, 0};
 ivec2s oldChunk = {0, 0};
 
+uint8_t currentBlock = 1;
+
 int main(int argc, const char *argv[])
 {
 	glfwInit();
@@ -260,7 +262,7 @@ void ProcessInput()
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
 			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-			PlaceBlock(chunk, chunkBlock, 7);
+			PlaceBlock(chunk, chunkBlock, currentBlock);
 		}
 	}
 }
@@ -365,5 +367,18 @@ void MouseCallback(GLFWwindow *window, double xPos, double yPos)
 
 void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
-    
+    if(yOffset > 0)
+	{
+		if(currentBlock == 7)
+			currentBlock = 1;
+		else
+			currentBlock++;
+	}
+	else if(yOffset < 0)
+	{
+		if(currentBlock == 1)
+			currentBlock = 7;
+		else
+			currentBlock--;
+	}
 }

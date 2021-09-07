@@ -9,8 +9,8 @@
 
 #include "vendor/ivec3s.h"
 
-#define NUMBER_OF_CHUNKS_X 100
-#define NUMBER_OF_CHUNKS_Z 100
+#define NUMBER_OF_CHUNKS_X 500
+#define NUMBER_OF_CHUNKS_Z 500
 
 typedef struct // Testing purposes
 {
