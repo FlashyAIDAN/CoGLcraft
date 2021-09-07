@@ -172,7 +172,7 @@ int main(int argc, const char *argv[])
 		WorldRender(&texture, &shader);
 
 		// Outline Cube Test
-		ivec3s oCubePos = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f);
+		ivec3s oCubePos = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, false);
 		mat4s oCubeModel = { 1.0f, 0.0f, 0.0f, 0.0f,
                  		 	0.0f, 1.0f, 0.0f, 0.0f,
                     	 	0.0f, 0.0f, 1.0f, 0.0f,
@@ -245,12 +245,22 @@ void ProcessInput()
 
 	if(GetKeyDown(GLFW_MOUSE_BUTTON_LEFT))
 	{
-		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f);
+		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, false);
 		if(block.x >= 0 && block.y >= 0 && block.z >= 0)
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
 			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
 			BreakBlock(chunk, chunkBlock);
+		}
+	}
+	if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
+	{
+		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, true);
+		if(block.x >= 0 && block.y >= 0 && block.z >= 0)
+		{
+			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
+			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+			PlaceBlock(chunk, chunkBlock, 7);
 		}
 	}
 }
