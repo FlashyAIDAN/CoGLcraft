@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include <cglm/struct.h>
 
+#include "file.h"
+
 struct Shader
 {
     unsigned int ID;

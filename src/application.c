@@ -12,6 +12,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "utils/file.h"
+
+#include <stddef.h>
+#include <ctype.h>
+#include <string.h>
+
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void MouseCallback(GLFWwindow *window, double xPos, double yPos);
 void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
@@ -92,12 +98,28 @@ int main(int argc, const char *argv[])
 	glfwSetWindowIcon(window, 1, images);
 	stbi_image_free(images[0].pixels);
 
-	SimplexInit(seed);
-
 	texture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	texture = MakeTexture("res/textures/testatlas_from_google.png", &texture, true);
 	shader = MakeShader("res/shaders/vertex.glsl", "res/shaders/fragment.glsl", NULL);
 	camera = MakeCamera(&shader, (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z }, -90.0f, 0.0f, screenWidth, screenHeight);
+
+	// Read Config File
+	char *str = ReadFile("res/settings.config");
+	const char *sensString = "Sensitivity = ";
+	const char *vdString = "View Distance = ";
+	const char *seedString = "Seed = ";
+    char word[100];
+    sscanf(strstr(str, sensString) + strlen(sensString), "%99s", word);
+    //printf("Found \"%s\" after \"%s\"\n\n", word, sensString);
+	camera.sensitivity = strtof(word, NULL);
+
+	sscanf(strstr(str, vdString) + strlen(vdString), "%99s", word);
+    //printf("Found \"%s\" after \"%s\"\n\n", word, vdString);
+	viewDistance  = (int)strtol(word, (char **)NULL, 10) / 2;
+
+	sscanf(strstr(str, seedString) + strlen(seedString), "%99s", word);
+    //printf("Found \"%s\" after \"%s\"\n\n", word, seedString);
+	SimplexInit((int)strtol(word, (char **)NULL, 10));
 
 	WorldStart();
 
@@ -369,7 +391,7 @@ void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
     if(yOffset > 0)
 	{
-		if(currentBlock == 7)
+		if(currentBlock == 15)
 			currentBlock = 1;
 		else
 			currentBlock++;
@@ -377,7 +399,7 @@ void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 	else if(yOffset < 0)
 	{
 		if(currentBlock == 1)
-			currentBlock = 7;
+			currentBlock = 15;
 		else
 			currentBlock--;
 	}

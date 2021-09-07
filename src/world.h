@@ -7,26 +7,24 @@
 
 #include "chunk.h"
 
+#include "vendor/ivec2s.h"
 #include "vendor/ivec3s.h"
 
-#define NUMBER_OF_CHUNKS_X 500
-#define NUMBER_OF_CHUNKS_Z 500
-
-typedef struct // Testing purposes
-{
-	int x, y;
-} ivec2s;
+#define NUMBER_OF_CHUNKS_X 512
+#define NUMBER_OF_CHUNKS_Z 512
 
 defineVector(ivec2s);
+
+int viewDistance;
 
 vectorivec2s activeChunks;
 vectorivec2s updateMesh;
 vectorivec2s modifyMesh;
 
-void WorldStart(/*vectorivec2s activeChunks, vectorivec2s meshToCreate*/);
+void WorldStart();
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
 void WorldDelete();
-void UpdateViewDistance(ivec2s currentChunk/*, vectorivec2s activeChunks, vectorivec2s meshToCreate*/);
+void UpdateViewDistance(ivec2s currentChunk);
 void BreakBlock(struct Chunk *chunk, ivec3s position);
 void PlaceBlock(struct Chunk *chunk, ivec3s position, uint8_t ID);
 

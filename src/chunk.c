@@ -36,7 +36,7 @@ int normals[6][3] =
     { 0, -1,  0}
 };
 
-struct Voxel voxels[8] =
+struct Voxel voxels[16] =
 {
 	{"Air", -1, -1, -1, -1, -1, -1, true, true},
 	{"Dirt", 242, 242, 242, 242, 242, 242, false, false},
@@ -45,7 +45,15 @@ struct Voxel voxels[8] =
 	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false},
 	{"Log", 228, 228, 228, 228, 229, 229, false, false},
 	{"Leaf", 196, 196, 196, 196, 196, 196, false, true},
-	{"Glass", 193, 193, 193, 193, 193, 193, false, true}
+	{"Glass", 193, 193, 193, 193, 193, 193, false, true},
+	{"Planks", 244, 244, 244, 244, 244, 244, false, false},
+	{"Bricks", 247, 247, 247, 247, 247, 247, false, false},
+	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false},
+	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false},
+	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false},
+	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false},
+	{"Diamon Ore", 194, 194, 194, 194, 194, 194, false, false},
+	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false}
 };
 
 void MakeChunk(struct Chunk *chunk, int x, int y, int z)

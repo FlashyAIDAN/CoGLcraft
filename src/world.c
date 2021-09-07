@@ -4,8 +4,6 @@ defineFuntionsVector(ivec2s, ((ivec2s){0.0f, 0.0f}));
 
 struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z] = {0};
 
-int viewDistance = 8;
-
 int wnormals[6][3] = 
 {
     { 0,  0,  1},
@@ -18,6 +16,9 @@ int wnormals[6][3] =
 
 void WorldStart()
 {
+	if(viewDistance == 0)
+		viewDistance = 4;
+	
 	VectorInitivec2s(&activeChunks);
 	VectorInitivec2s(&updateMesh);
 	VectorInitivec2s(&modifyMesh);
