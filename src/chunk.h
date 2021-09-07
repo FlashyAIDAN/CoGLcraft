@@ -11,6 +11,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define CHUNK_SIZE_X 16
 #define CHUNK_SIZE_Y 256
@@ -32,6 +33,8 @@ struct Chunk
     unsigned int x, z, VBO, VAO, EBO, CBO, UVBO, indiceIndex;
 
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
+
+    bool renderable, populated;
 };
 
 struct Voxel
@@ -44,7 +47,7 @@ struct Voxel
 };
 
 
-uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z);
+uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 
 void MakeChunk(struct Chunk *chunk, int x, int y, int z);

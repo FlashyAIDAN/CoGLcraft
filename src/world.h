@@ -18,7 +18,7 @@ typedef struct // Testing purposes
 defineVector(ivec2s);
 
 vectorivec2s activeChunks;
-vectorivec2s testUpdateMesh;
+vectorivec2s updateMesh;
 
 void WorldStart(/*vectorivec2s activeChunks, vectorivec2s meshToCreate*/);
 void WorldRender(struct Texture2D *texture, struct Shader *shader);

@@ -61,13 +61,13 @@ void MakeChunk(struct Chunk *chunk, int x, int y, int z)
     chunk->UVBO = 0;
     chunk->indiceIndex = 0;
 
-	//printf("%i", x);
-	//printf("%i", chunk->x);
-
     chunk->position = (vec3s){(float)x * CHUNK_SIZE_X, (float)y * CHUNK_SIZE_Y, (float)z * CHUNK_SIZE_Z};
+
+	chunk->renderable = false;
+	chunk->populated = false;
 }
 
-uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
+uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 {
 	//printf("%i\n",(int)floor(42 * Get2DPerlin(x, z, 0, 0.25)) + 42);
 	// If bottom block of chunk, return bedrock.
@@ -76,7 +76,7 @@ uint8_t GenerateVoxel(struct Chunk *chunk, int x, int y, int z)
 
 	/* BASIC TERRAIN PASS */
 
-	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(chunk->position.x + x, chunk->position.z + z, 0, 0.25)));
+	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(position.x + x, position.z + z, 0, 0.25)));
 	uint8_t voxelValue = 0;
 
 	if (y == terrainHeight)
@@ -222,6 +222,8 @@ void CreateChunkBufferData(struct Chunk *chunk)
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->UVBO);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(2);
+
+	chunk->renderable = true;
 }
 
 void DeleteChunk(struct Chunk *chunk)
@@ -261,10 +263,12 @@ void CreateVoxels(struct Chunk *chunk)
 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
 			{
 				//printf("%i", chunk->x);
-				chunk->voxels[x][y][z] = GenerateVoxel(chunk, x, y, z);
+				chunk->voxels[x][y][z] = GenerateVoxel(chunk->position, x, y, z);
 			}
 		}
 	}
+
+	chunk->populated = true;
 }
 
 void CreateVertices(struct Chunk *chunk)
