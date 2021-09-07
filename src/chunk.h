@@ -46,7 +46,6 @@ struct Voxel
     bool isInvisible, renderNeighborFaces;
 };
 
-
 uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 
@@ -54,6 +53,7 @@ void MakeChunk(struct Chunk *chunk, int x, int y, int z);
 void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID);
 void CreateChunkBufferData(struct Chunk *chunk);
 void DeleteChunk(struct Chunk *chunk);
+void ClearChunk(struct Chunk *chunk);
 void RenderChunk(struct Chunk *chunk, struct Shader *shader);
 void CreateVoxels(struct Chunk *chunk);
 void CreateVertices(struct Chunk *chunk);

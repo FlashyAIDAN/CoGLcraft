@@ -16,6 +16,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void MouseCallback(GLFWwindow *window, double xPos, double yPos);
 void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void ProcessInput();
 
 bool GetKey(int keyCode);
@@ -44,8 +45,6 @@ int seed = 69420;
 ivec2s currentChunk = {0, 0};
 ivec2s oldChunk = {0, 0};
 
-bool test_dontupdateviewdistance = false;
-
 int main(int argc, const char *argv[])
 {
 	glfwInit();
@@ -67,6 +66,7 @@ int main(int argc, const char *argv[])
 	}
 
 	glfwSetKeyCallback(window, KeyCallback);
+	glfwSetMouseButtonCallback(window, MouseButtonCallback);
 	glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 	glfwSetCursorPosCallback(window, MouseCallback);
     glfwSetScrollCallback(window, ScrollCallback);
@@ -105,6 +105,47 @@ int main(int argc, const char *argv[])
 	currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
 	oldChunk = currentChunk;
 
+	// Outline Cube Test
+	int oCubeVAO, oCubeVBO, oCubeEBO = 0;
+	float oCubeVerticeData[24] = 
+	{
+		0, 0, 0,
+		1, 0, 0,
+		1, 1, 0,
+		0, 1, 0,
+		0, 0, 1,
+		1, 0, 1,
+		1, 1, 1,
+		0, 1, 1
+	};
+
+	unsigned int oCubeIndiceData[36] =
+	{
+		5, 6, 4, 4, 6, 7, // Front Face
+		0, 3, 1, 1, 3, 2, // Back Face
+		4, 7, 0, 0, 7, 3, // Left Face
+		1, 2, 5, 5, 2, 6, // Right Face
+		3, 7, 2, 2, 7, 6, // Top Face
+		1, 5, 0, 0, 5, 4  // Bottom Face
+	};
+
+	glGenVertexArrays(1, &oCubeVAO);
+	glGenBuffers(1, &oCubeVBO);
+	glGenBuffers(1, &oCubeEBO);
+
+	glBindVertexArray(oCubeVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(oCubeVerticeData), oCubeVerticeData, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, oCubeEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(oCubeIndiceData), oCubeIndiceData, GL_STATIC_DRAW);
+
+	// position attribute
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
 	while(!glfwWindowShouldClose(window))
 	{
 		currentFrame = glfwGetTime();
@@ -123,16 +164,31 @@ int main(int argc, const char *argv[])
 		if(oldChunk.x != currentChunk.x || oldChunk.y != currentChunk.y)
 		{
 			oldChunk = currentChunk;
-			if(test_dontupdateviewdistance)
-				UpdateViewDistance(currentChunk);
+			UpdateViewDistance(currentChunk);
 		}
 
 		UpdateCameraVectors(&camera, &shader);
 
 		WorldRender(&texture, &shader);
 
+		// Outline Cube Test
+		ivec3s oCubePos = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f);
+		mat4s oCubeModel = { 1.0f, 0.0f, 0.0f, 0.0f,
+                 		 	0.0f, 1.0f, 0.0f, 0.0f,
+                    	 	0.0f, 0.0f, 1.0f, 0.0f,
+                    	 	0.0f, 0.0f, 0.0f, 1.0f };
+		oCubeModel = glms_translate(oCubeModel, (vec3s){oCubePos.x - 0.025f, oCubePos.y - 0.025f, oCubePos.z - 0.025f});
+		oCubeModel = glms_scale(oCubeModel, (vec3s){1.05f, 1.05f, 1.05f});
+		SetShaderMatrix4(&shader, "model", oCubeModel, true);
+		glBindVertexArray(oCubeVAO);
+		glDrawElements(GL_LINES, 36, GL_UNSIGNED_INT, 0);
+
 		glfwSwapBuffers(window);
 	}
+
+	glDeleteVertexArrays(1, &oCubeVAO);
+	glDeleteBuffers(1, &oCubeVBO);
+	glDeleteBuffers(1, &oCubeEBO);
 
 	SimplexFree();
 	WorldDelete();
@@ -160,14 +216,6 @@ void ProcessInput()
 		}
 	}
 
-	if(GetKeyDown(GLFW_KEY_F2))
-	{
-		if(!test_dontupdateviewdistance)
-			test_dontupdateviewdistance = true;
-		else
-			test_dontupdateviewdistance = false;
-	}
-
 	float velocity = camera.speed * deltaTime;
     if(GetKey(GLFW_KEY_W))
         camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.front, (vec3s){velocity, velocity, velocity}));
@@ -193,6 +241,17 @@ void ProcessInput()
 		camera.speed--;
 		if(camera.speed <= 1.0f)
 			camera.speed = 1.0f;
+	}
+
+	if(GetKeyDown(GLFW_MOUSE_BUTTON_LEFT))
+	{
+		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f);
+		if(block.x >= 0 && block.y >= 0 && block.z >= 0)
+		{
+			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
+			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+			BreakBlock(chunk, chunkBlock);
+		}
 	}
 }
 
@@ -230,13 +289,25 @@ void KeyCallback(GLFWwindow *window, int key, int scancodem, int action, int mod
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
-		{
 			keys[key] = true;
-		}
 		else if (action == GLFW_RELEASE)
 		{
 			keys[key] = false;
 			keysProcessed[key] = false;
+		}
+	}
+}
+
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button >= 0 && button < 1024)
+	{
+		if (action == GLFW_PRESS)
+			keys[button] = true;
+		else if (action == GLFW_RELEASE)
+		{
+			keys[button] = false;
+			keysProcessed[button] = false;
 		}
 	}
 }

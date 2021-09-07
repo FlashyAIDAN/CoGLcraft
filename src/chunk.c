@@ -16,7 +16,7 @@ float verticeData[8][3] =
     {0, 1, 1}
 };
 
-unsigned int indiceData[6][6] =
+unsigned int indiceData[6][4] =
 {
     {5, 6, 4, 7}, // Front Face
 	{0, 3, 1, 2}, // Back Face
@@ -239,6 +239,16 @@ void DeleteChunk(struct Chunk *chunk)
 	chunk->colors.pfVectorFreefloat(&chunk->colors);
 	chunk->uvs.pfVectorFreefloat(&chunk->uvs);
 }
+
+void ClearChunk(struct Chunk *chunk)
+{
+	chunk->indiceIndex = 0;
+	chunk->vertices.pfVectorFreefloat(&chunk->vertices);
+	chunk->indices.pfVectorFreeint(&chunk->indices);
+	chunk->colors.pfVectorFreefloat(&chunk->colors);
+	chunk->uvs.pfVectorFreefloat(&chunk->uvs);
+}
+
 
 void RenderChunk(struct Chunk *chunk, struct Shader *shader)
 {
