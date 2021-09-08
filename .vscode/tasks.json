@@ -28,7 +28,9 @@
                 "-lglfw3",
                 "-lopengl32",
                 "-lgdi32",
-                "-std=c11"
+                "-std=c11",
+                "-O3", // If errors fallback
+                "-Ofast" // Might cause errors because it does more inaccurate math
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -66,7 +68,9 @@
                 "-lopengl32",
                 "-lgdi32",
                 "-std=c11",
-                "-mwindows"
+                "-mwindows",
+                "-O3", // If errors fallback
+                "-Ofast" // Might cause errors because it does more inaccurate math
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

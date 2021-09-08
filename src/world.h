@@ -10,8 +10,8 @@
 #include "vendor/ivec2s.h"
 #include "vendor/ivec3s.h"
 
-#define NUMBER_OF_CHUNKS_X 512
-#define NUMBER_OF_CHUNKS_Z 512
+#define NUMBER_OF_CHUNKS_X 100
+#define NUMBER_OF_CHUNKS_Z 100
 
 defineVector(ivec2s);
 
@@ -25,8 +25,7 @@ void WorldStart();
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
 void WorldDelete();
 void UpdateViewDistance(ivec2s currentChunk);
-void BreakBlock(struct Chunk *chunk, ivec3s position);
-void PlaceBlock(struct Chunk *chunk, ivec3s position, uint8_t ID);
+void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID);
 
 struct Chunk *GetChunk(int x, int z);
 

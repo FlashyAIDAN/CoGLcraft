@@ -101,26 +101,7 @@ void UpdateViewDistance(ivec2s currentChunk)
 	}
 }
 
-void BreakBlock(struct Chunk *chunk, ivec3s position)
-{
-	if(IsVoxelInWorld(position.x, position.y, position.z) && IsVoxelInChunk(chunk, position.x, position.y, position.z))
-	{
-		chunk->voxels[position.x][position.y][position.z] = 0;
-		VectorPushBackivec2s(&modifyMesh, (ivec2s){chunk->x, chunk->z});
-
-		// Update Surrounding Voxels
-		ivec3s thisVoxel = (ivec3s){position.x, position.y, position.z};
-
-		for (int i = 0; i < 6; i++)
-		{
-			ivec3s currentVoxel = glms_ivec3_add(thisVoxel, (ivec3s){wnormals[i][0], wnormals[i][1], wnormals[i][2]});
-			if (!IsVoxelInChunk(chunk, currentVoxel.x, currentVoxel.y, currentVoxel.z))
-				VectorPushBackivec2s(&modifyMesh, (ivec2s){(int)floorf((float)(currentVoxel.x + chunk->position.x) / (float)CHUNK_SIZE_X), (int)floorf((float)(currentVoxel.z + chunk->position.z) / (float)CHUNK_SIZE_Z)});
-		}
-	}
-}
-
-void PlaceBlock(struct Chunk *chunk, ivec3s position, uint8_t ID)
+void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID)
 {
 	if(IsVoxelInWorld(position.x, position.y, position.z) && IsVoxelInChunk(chunk, position.x, position.y, position.z))
 	{

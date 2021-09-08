@@ -46,6 +46,14 @@ struct Voxel
     bool isInvisible, renderNeighborFaces;
 };
 
+struct Lode
+{
+	const char *name;
+	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
+	unsigned int minHeight, maxHeight;
+	float scale, offset, threshold;
+};
+
 uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 

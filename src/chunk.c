@@ -56,6 +56,11 @@ struct Voxel voxels[16] =
 	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false}
 };
 
+struct Lode lodes[1] =
+{
+	{"Iron Ore", 12, 3, 20, 70, 0.25f, 0.0f, 0.7f}
+};
+
 void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 {
 	memset(chunk, 0, sizeof(struct Chunk));
@@ -84,7 +89,7 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 
 	/* BASIC TERRAIN PASS */
 
-	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(position.x + x, position.z + z, 0, 0.25)));
+	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(position.x + x, position.z + z, 0.0f, 0.25f)));
 	uint8_t voxelValue = 0;
 
 	if (y == terrainHeight)
@@ -95,6 +100,17 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 		return 0;
 	else
 		voxelValue = 3;
+
+	if (voxelValue == lodes[0].replaceVoxel)
+	{
+		if (y > lodes[0].minHeight && y < lodes[0].maxHeight)
+		{
+			if (Get3DSimplex(position.x + x, position.y + y, position.z + z, lodes[0].offset, lodes[0].scale) > lodes[0].threshold) // TODO(Aidan): Check this out later
+			{
+				voxelValue = lodes[0].ID;
+			}
+		}
+	}
 	
 	return voxelValue;
 }
@@ -280,7 +296,6 @@ void CreateVoxels(struct Chunk *chunk)
 		{
 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				//printf("%i", chunk->x);
 				chunk->voxels[x][y][z] = GenerateVoxel(chunk->position, x, y, z);
 			}
 		}

@@ -30,6 +30,7 @@ bool GetKeyDown(int keyCode);
 bool GetKeyReleased(int keyCode);
 
 GLFWwindow *window;
+bool fullscreen = false;
 unsigned int screenWidth = 960;
 unsigned int screenHeight = 540;
 
@@ -240,6 +241,23 @@ void ProcessInput()
 		}
 	}
 
+	if(GetKeyDown(GLFW_KEY_F11))
+	{
+		if (fullscreen)
+		{
+			unsigned int width = 960, height = 540;
+			glfwSetWindowMonitor(window, NULL, width / 4, height / 4, width, height, 0);
+			fullscreen = false;
+		}
+		else
+		{
+			GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			fullscreen = true;
+		}
+	}
+
 	float velocity = camera.speed * deltaTime;
     if(GetKey(GLFW_KEY_W))
         camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.front, (vec3s){velocity, velocity, velocity}));
@@ -274,7 +292,7 @@ void ProcessInput()
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
 			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-			BreakBlock(chunk, chunkBlock);
+			EditVoxel(chunk, chunkBlock, 0);
 		}
 	}
 	if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
@@ -284,7 +302,7 @@ void ProcessInput()
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
 			ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-			PlaceBlock(chunk, chunkBlock, currentBlock);
+			EditVoxel(chunk, chunkBlock, currentBlock);
 		}
 	}
 }
