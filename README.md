@@ -3,7 +3,7 @@ why the wierd name you ask?
 its because it means,
 - C (as in C, the programing language I used (which was a pain in the ass))
 - oGL (as in OpenGL, the graphics API I used)
-- craft (as in while MineCraft, the game im cloning)
+- craft (as in well MineCraft, the game im cloning)
 
 # About
 This is meant to be a fun little side project for me to learn C and OpenGL. 
