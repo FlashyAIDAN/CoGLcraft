@@ -5,8 +5,6 @@
 #include "utils/shader.h"
 #include "utils/vector.h"
 
-#include "chunk.h"
-
 #include "vendor/ivec2s.h"
 #include "vendor/ivec3s.h"
 
@@ -15,11 +13,31 @@
 
 defineVector(ivec2s);
 
+typedef struct VoxelMod
+{
+    ivec3s position;
+    uint8_t ID;
+} voxelmod;
+
+defineVector(voxelmod)
+defineVector(vectorvoxelmod);
+#include "chunk.h"
+
+struct Lode
+{
+	const char *name;
+	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
+	unsigned int minHeight, maxHeight;
+	float scale, offset, threshold;
+};
+
 int viewDistance;
 
 vectorivec2s activeChunks;
 vectorivec2s updateMesh;
 vectorivec2s modifyMesh;
+
+vectorvectorvoxelmod modifications;
 
 void WorldStart();
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
@@ -30,6 +48,7 @@ void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID);
 struct Chunk *GetChunk(int x, int z);
 
 uint8_t WorldGetVoxel(int x, int y, int z);
+uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 
 ivec2s GetCurrentChunkCoordinates(float x, float z);
 

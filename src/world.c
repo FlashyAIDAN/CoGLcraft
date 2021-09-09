@@ -1,8 +1,14 @@
 #include "world.h"
 
 defineFuntionsVector(ivec2s, ((ivec2s){0.0f, 0.0f}));
+defineFuntionsVector(vectorvoxelmod, ((vectorvoxelmod){0}));
 
 struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z] = {0};
+
+struct Lode lodes[1] =
+{
+	{"Iron Ore", 12, 3, 20, 70, 0.25f, 0.0f, 0.7f}
+};
 
 int wnormals[6][3] = 
 {
@@ -22,11 +28,14 @@ void WorldStart()
 	VectorInitivec2s(&activeChunks);
 	VectorInitivec2s(&updateMesh);
 	VectorInitivec2s(&modifyMesh);
+
+	VectorInitvectorvoxelmod(&modifications);
+
 	for (int x = (NUMBER_OF_CHUNKS_X / 2) - viewDistance; x < (NUMBER_OF_CHUNKS_X / 2) + viewDistance; x++)
 	{
 		for (int z = (NUMBER_OF_CHUNKS_Z / 2) - viewDistance; z < (NUMBER_OF_CHUNKS_Z / 2) + viewDistance; z++)
 		{
-			chunks[x][z] =  malloc(sizeof(struct Chunk));
+			chunks[x][z] = malloc(sizeof(struct Chunk));
 			MakeChunk(chunks[x][z], x, 0, z);
 			CreateVoxels(chunks[x][z]);
 		}
@@ -44,30 +53,59 @@ void WorldStart()
 
 void WorldRender(struct Texture2D *texture, struct Shader *shader)
 {
-	if(updateMesh.pfVectorTotalivec2s(&updateMesh) > 0)
+	//int count = 0;
+	while (VectorTotalvectorvoxelmod(&modifications) > 0) // TODO(Aidan): Fix the rendering of the modifications and clean all of this up and improve it
 	{
+		vectorvoxelmod queue = VectorGetvectorvoxelmod(&modifications, 0);
+		VectorDeletevectorvoxelmod(&modifications, 0);
+		while (VectorTotalvoxelmod(&queue) > 0)
+		{
+			struct VoxelMod voxel = VectorGetvoxelmod(&queue, 0);
+			VectorDeletevoxelmod(&queue, 0);
+
+			if (chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] == 0)
+			{
+				printf("%i, %i\n", (int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z));
+				chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] = malloc(sizeof(struct Chunk));
+				MakeChunk(chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)], (int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), 0, (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z));
+				VectorPushBackivec2s(&updateMesh, (ivec2s){(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)});
+			}
+			
+			VectorPushBackvoxelmod(&chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modifications, voxel);
+			//chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->voxels[voxel.position.x - (int)chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->position.x][voxel.position.y - (int)chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->position.y][voxel.position.z - (int)chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->position.z] = voxel.ID;
+		}
+		//count++; // HE Removed this but i added it back because it speeds things up
+		//if (count > 200) // Splits work up each frame for every 200 voxels
+			//return;
+	}
+	if(VectorTotalivec2s(&updateMesh) > 0)
+	{
+		chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y] = malloc(sizeof(struct Chunk));
+					MakeChunk(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y], VectorGetivec2s(&updateMesh, 0).x, 0, VectorGetivec2s(&updateMesh, 0).y);
 		CreateVoxels(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		CreateVertices(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 	 	CreateChunkBufferData(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		VectorDeleteivec2s(&updateMesh, 0);
 	}
-	while(modifyMesh.pfVectorTotalivec2s(&modifyMesh) > 0)
+	while(VectorTotalivec2s(&modifyMesh) > 0)
 	{
 		ClearChunk(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
 		CreateVertices(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
 	 	CreateChunkBufferData(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
 		VectorDeleteivec2s(&modifyMesh, 0);
 	}
+	
+	
 	BindTexture(texture);
-	for(int i = 0; i < activeChunks.pfVectorTotalivec2s(&activeChunks); i++)
-		if(chunks[activeChunks.pfVectorGetivec2s(&activeChunks, i).x][activeChunks.pfVectorGetivec2s(&activeChunks, i).y]->renderable)
-			RenderChunk(chunks[activeChunks.pfVectorGetivec2s(&activeChunks, i).x][activeChunks.pfVectorGetivec2s(&activeChunks, i).y], shader);
+	for(int i = 0; i < VectorTotalivec2s(&activeChunks); i++)
+		if(chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y]->renderable)
+			RenderChunk(chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y], shader);
 }
 
 void WorldDelete()
 {
-	activeChunks.pfVectorFreeivec2s(&activeChunks);
-	updateMesh.pfVectorFreeivec2s(&updateMesh);
+	VectorFreeivec2s(&activeChunks);
+	VectorFreeivec2s(&updateMesh);
 	VectorFreeivec2s(&modifyMesh);
     for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
 	{
@@ -91,11 +129,10 @@ void UpdateViewDistance(ivec2s currentChunk)
 			{
 				if (chunks[x][z] == 0)
 				{
-					chunks[x][z] = malloc(sizeof(struct Chunk));
-					MakeChunk(chunks[x][z], x, 0, z);
+					
 					VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
 				}
-				activeChunks.pfVectorAddivec2s(&activeChunks, (ivec2s){x, z});
+				VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
 			}
 		}
 	}
@@ -141,6 +178,52 @@ uint8_t WorldGetVoxel(int x, int y, int z)
 		else
 			return GetVoxel(currentChunk, x - currentChunk->position.x, y - currentChunk->position.y, z - currentChunk->position.z);
 	}
+}
+
+uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
+{
+	//printf("%i\n",(int)floor(42 * Get2DPerlin(x, z, 0, 0.25)) + 42);
+	// If bottom block of chunk, return bedrock.
+	if (y == 0)
+		return 4;
+
+	/* BASIC TERRAIN PASS */
+
+	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(x + position.x, z + position.z, 0.0f, 0.25f)));
+	uint8_t voxelValue = 0;
+
+	if (y == terrainHeight)
+		voxelValue =  2;
+	else if (y < terrainHeight && y > terrainHeight - 4)
+		voxelValue = 1;
+	else if (y > terrainHeight)
+		return 0;
+	else
+		voxelValue = 3;
+
+	if (voxelValue == lodes[0].replaceVoxel)
+	{
+		if (y > lodes[0].minHeight && y < lodes[0].maxHeight)
+		{
+			if (Get3DSimplex(position.x + x, position.y + y, position.z + z, lodes[0].offset, lodes[0].scale) > lodes[0].threshold) // TODO(Aidan): Check this out later
+			{
+				voxelValue = lodes[0].ID;
+			}
+		}
+	}
+
+	if(y == terrainHeight)
+	{
+		if(Get2DSimplex(x + position.x, z + position.z, 0.0f, 1.3f) > 0.6f)
+		{
+			if(Get2DSimplex(x + position.x, z + position.z, 0.0f, 15.0f) > 0.5f)
+			{
+				VectorPushBackvectorvoxelmod(&modifications, MakeTree((ivec3s){x + position.x, y + position.y, z + position.z}, 4, 7));
+			}
+		}
+	}
+	
+	return voxelValue;
 }
 
 ivec2s GetCurrentChunkCoordinates(float x, float z)

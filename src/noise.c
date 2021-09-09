@@ -19,5 +19,5 @@ float Get2DSimplex(float x, float y, float offset, float scale)
 
 float Get3DSimplex(float x, float y, float z, float offset, float scale)
 {
-	return (float)open_simplex_noise3(ctx, (x + 0.1f) * scale + offset, (y + 0.1f) * scale + offset, (z + 0.1f) * scale + offset);
+	return (float)open_simplex_noise3(ctx, x * scale + offset, y * scale + offset, z * scale + offset);
 }

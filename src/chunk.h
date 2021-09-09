@@ -5,7 +5,10 @@
 
 #include <cglm/struct.h>
 
+#include "world.h"
 #include "noise.h"
+#include "structure.h"
+
 #include "utils/shader.h"
 #include "utils/vector.h"
 
@@ -35,6 +38,8 @@ struct Chunk
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
 
     bool renderable, populated;
+
+    vectorvoxelmod modifications;
 };
 
 struct Voxel
@@ -46,15 +51,6 @@ struct Voxel
     bool isInvisible, renderNeighborFaces;
 };
 
-struct Lode
-{
-	const char *name;
-	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
-	unsigned int minHeight, maxHeight;
-	float scale, offset, threshold;
-};
-
-uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 
 void MakeChunk(struct Chunk *chunk, int x, int y, int z);

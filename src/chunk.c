@@ -3,6 +3,27 @@
 
 defineFuntionsVector(float, 0);
 defineFuntionsVector(int, 0);
+defineFuntionsVector(voxelmod, ((struct VoxelMod){(ivec3s){0, 0, 0}, 0}))
+
+struct Voxel voxels[16] =
+{
+	{"Air", -1, -1, -1, -1, -1, -1, true, true},
+	{"Dirt", 242, 242, 242, 242, 242, 242, false, false},
+	{"Grass", 243, 243, 243, 243, 240, 242, false, false},
+	{"Stone", 241, 241, 241, 241, 241, 241, false, false},
+	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false},
+	{"Log", 228, 228, 228, 228, 229, 229, false, false},
+	{"Leaf", 196, 196, 196, 196, 196, 196, false, true},
+	{"Glass", 193, 193, 193, 193, 193, 193, false, true},
+	{"Planks", 244, 244, 244, 244, 244, 244, false, false},
+	{"Bricks", 247, 247, 247, 247, 247, 247, false, false},
+	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false},
+	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false},
+	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false},
+	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false},
+	{"Diamon Ore", 194, 194, 194, 194, 194, 194, false, false},
+	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false}
+};
 
 float verticeData[8][3] = 
 {
@@ -36,31 +57,6 @@ int normals[6][3] =
     { 0, -1,  0}
 };
 
-struct Voxel voxels[16] =
-{
-	{"Air", -1, -1, -1, -1, -1, -1, true, true},
-	{"Dirt", 242, 242, 242, 242, 242, 242, false, false},
-	{"Grass", 243, 243, 243, 243, 240, 242, false, false},
-	{"Stone", 241, 241, 241, 241, 241, 241, false, false},
-	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false},
-	{"Log", 228, 228, 228, 228, 229, 229, false, false},
-	{"Leaf", 196, 196, 196, 196, 196, 196, false, true},
-	{"Glass", 193, 193, 193, 193, 193, 193, false, true},
-	{"Planks", 244, 244, 244, 244, 244, 244, false, false},
-	{"Bricks", 247, 247, 247, 247, 247, 247, false, false},
-	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false},
-	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false},
-	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false},
-	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false},
-	{"Diamon Ore", 194, 194, 194, 194, 194, 194, false, false},
-	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false}
-};
-
-struct Lode lodes[1] =
-{
-	{"Iron Ore", 12, 3, 20, 70, 0.25f, 0.0f, 0.7f}
-};
-
 void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 {
 	memset(chunk, 0, sizeof(struct Chunk));
@@ -78,41 +74,8 @@ void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 
 	chunk->renderable = false;
 	chunk->populated = false;
-}
 
-uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
-{
-	//printf("%i\n",(int)floor(42 * Get2DPerlin(x, z, 0, 0.25)) + 42);
-	// If bottom block of chunk, return bedrock.
-	if (y == 0)
-		return 4;
-
-	/* BASIC TERRAIN PASS */
-
-	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(position.x + x, position.z + z, 0.0f, 0.25f)));
-	uint8_t voxelValue = 0;
-
-	if (y == terrainHeight)
-		voxelValue =  2;
-	else if (y < terrainHeight && y > terrainHeight - 4)
-		voxelValue = 1;
-	else if (y > terrainHeight)
-		return 0;
-	else
-		voxelValue = 3;
-
-	if (voxelValue == lodes[0].replaceVoxel)
-	{
-		if (y > lodes[0].minHeight && y < lodes[0].maxHeight)
-		{
-			if (Get3DSimplex(position.x + x, position.y + y, position.z + z, lodes[0].offset, lodes[0].scale) > lodes[0].threshold) // TODO(Aidan): Check this out later
-			{
-				voxelValue = lodes[0].ID;
-			}
-		}
-	}
-	
-	return voxelValue;
+	VectorInitvoxelmod(&chunk->modifications);
 }
 
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
@@ -311,7 +274,13 @@ void CreateVertices(struct Chunk *chunk)
     VectorInitfloat(&chunk->uvs);
     VectorInitint(&chunk->indices);
 
-	
+	while (VectorTotalvoxelmod(&chunk->modifications) > 0)
+	{
+		struct VoxelMod voxel = VectorGetvoxelmod(&chunk->modifications, 0);
+		VectorDeletevoxelmod(&chunk->modifications, 0);
+
+		chunk->voxels[(int)(voxel.position.x - chunk->position.x)][(int)(voxel.position.y - chunk->position.y)][(int)(voxel.position.z - chunk->position.z)] = voxel.ID;
+	}
 
 	for(int x = 0; x < CHUNK_SIZE_X; x++)
 	{
