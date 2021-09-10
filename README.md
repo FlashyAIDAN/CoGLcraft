@@ -9,7 +9,7 @@ its because it means,
 This is meant to be a fun little side project for me to learn C and OpenGL. 
 
 # Resources
-(you need these to make it work)
+(you need these for working with the source code)
 - glad with core, at least opengl 3.3, and c/c++
 - glfw 3.3.4 (you could probally get away with a higher or lower version, but to be safe use the version I used)
 - stb_image
