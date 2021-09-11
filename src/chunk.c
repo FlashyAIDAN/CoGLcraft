@@ -74,6 +74,7 @@ void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 
 	chunk->renderable = false;
 	chunk->populated = false;
+	chunk->modified = false;
 
 	VectorInitvoxelmod(&chunk->modifications);
 }
