@@ -116,7 +116,7 @@ int main(int argc, const char *argv[])
 
 	sscanf(strstr(str, vdString) + strlen(vdString), "%99s", word);
     //printf("Found \"%s\" after \"%s\"\n\n", word, vdString);
-	viewDistance  = (int)strtol(word, (char **)NULL, 10) / 2;
+	viewDistance  = (int)strtol(word, (char **)NULL, 10);
 
 	sscanf(strstr(str, seedString) + strlen(seedString), "%99s", word);
     //printf("Found \"%s\" after \"%s\"\n\n", word, seedString);
