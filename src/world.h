@@ -8,10 +8,51 @@
 #include "vendor/ivec2s.h"
 #include "vendor/ivec3s.h"
 
+#include <stdlib.h>
+
 #define NUMBER_OF_CHUNKS_X 100
 #define NUMBER_OF_CHUNKS_Z 100
 
 defineVector(ivec2s);
+
+struct BiomeBlock
+{
+	uint8_t ID;
+	int minHeight, maxHeight;
+};
+
+enum StructureType
+{
+	TREE,
+	CACTUS
+};
+
+struct Structure
+{
+	enum StructureType type;
+	int minHeight, maxHeight, height;
+	float offset, scale, threshold, subOffset, subScale, subThreshold;
+};
+
+struct Lode
+{
+	const char *name;
+	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
+	unsigned int minHeight, maxHeight;
+	float offset, scale, threshold;
+};
+
+struct Biome
+{
+	const char *name;
+	int terrainHeight;
+	float offset, scale, terrainOffset, terrainScale;
+	//vectorstructure structures;
+	struct BiomeBlock *blocks;
+	struct Structure *structures;
+	struct Lode *lodes;
+	int sizeofBlocks, sizeofStructures, sizeofLodes;
+};
 
 typedef struct VoxelMod
 {
@@ -22,14 +63,6 @@ typedef struct VoxelMod
 defineVector(voxelmod)
 defineVector(vectorvoxelmod);
 #include "chunk.h"
-
-struct Lode
-{
-	const char *name;
-	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
-	unsigned int minHeight, maxHeight;
-	float scale, offset, threshold;
-};
 
 int viewDistance;
 

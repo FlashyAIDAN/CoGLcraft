@@ -5,9 +5,16 @@ defineFuntionsVector(vectorvoxelmod, ((vectorvoxelmod){0}));
 
 struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z] = {0};
 
-struct Lode lodes[1] =
+struct Lode lodes[2] =
 {
-	{"Iron Ore", 12, 3, 20, 70, 0.25f, 0.0f, 0.7f}
+	{"Iron Ore", 12, 3, 20, 70, 0.0f, 0.25f, 0.7f},
+	{"Coal Ore", 13, 3, 50, 100, 500.0f, 0.125f, 0.75f}
+};
+
+struct Biome biomes[2] =
+{
+	{"Forest", 100, 0.0f, 1.0f, 0.0f, 0.25f, {0}, {0}, {0}},
+	{"Desert", 100, 500.0f, 1.0f, 0.0f, 0.25f, {0}, {0}, {0}}
 };
 
 int wnormals[6][3] = 
@@ -22,6 +29,31 @@ int wnormals[6][3] =
 
 void WorldStart()
 {
+	// BIOME 1
+	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
+	biomes[0].structures = calloc(1, sizeof(struct Structure));
+	biomes[0].lodes = calloc(2, sizeof(struct Lode));
+	biomes[0].blocks[0] = (struct BiomeBlock){2, 0, 0};
+	biomes[0].blocks[1] = (struct BiomeBlock){1, 5, 1};
+	biomes[0].blocks[2] = (struct BiomeBlock){3, 256, 6};
+	biomes[0].structures[0] = (struct Structure){TREE, 5, 9, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[0].lodes[0] = lodes[0];
+	biomes[0].lodes[1] = lodes[1];
+	biomes[0].sizeofBlocks = 3;
+	biomes[0].sizeofStructures = 1;
+	biomes[0].sizeofLodes = 2;
+
+	// BIOME 2
+	biomes[1].blocks = calloc(1, sizeof(struct BiomeBlock));
+	biomes[1].structures = calloc(1, sizeof(struct Structure));
+	biomes[1].lodes = calloc(1, sizeof(struct Lode));
+	biomes[1].blocks[0] = (struct BiomeBlock){16, 256, 0};
+	biomes[1].structures[0] = (struct Structure){CACTUS, 5, 9, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[1].lodes[0] = lodes[1];
+	biomes[1].sizeofBlocks = 1;
+	biomes[1].sizeofStructures = 1;
+	biomes[1].sizeofLodes = 1;
+
 	if(viewDistance == 0)
 		viewDistance = 4;
 	
@@ -179,43 +211,62 @@ uint8_t WorldGetVoxel(int x, int y, int z)
 
 uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 {
-	//printf("%i\n",(int)floor(42 * Get2DPerlin(x, z, 0, 0.25)) + 42);
 	// If bottom block of chunk, return bedrock.
 	if (y == 0)
 		return 4;
 
 	/* BASIC TERRAIN PASS */
 
-	int terrainHeight = 100 + ((int)floor(20 * Get2DSimplex(x + position.x, z + position.z, 0.0f, 0.25f)));
-	uint8_t voxelValue = 0;
+	struct Biome currentBiome;
+	int strongestBiomeIndex;
+	float strongestWeight = 0.0f;
 
-	if (y == terrainHeight)
-		voxelValue =  2;
-	else if (y < terrainHeight && y > terrainHeight - 4)
-		voxelValue = 1;
-	else if (y > terrainHeight)
-		return 0;
-	else
-		voxelValue = 3;
-
-	if (voxelValue == lodes[0].replaceVoxel)
+	for (int i = 0; i < (sizeof(biomes) / sizeof(biomes[0])); i++)
 	{
-		if (y > lodes[0].minHeight && y < lodes[0].maxHeight)
+        float weight = Get2DSimplex(position.x, position.z, biomes[i].offset, biomes[i].scale);
+
+        if (weight > strongestWeight)
 		{
-			if (Get3DSimplex(position.x + x, position.y + y, position.z + z, lodes[0].offset, lodes[0].scale) > lodes[0].threshold) // TODO(Aidan): Check this out later
+        	strongestWeight = weight;
+        	strongestBiomeIndex = i;
+		}
+    }
+
+	currentBiome = biomes[strongestBiomeIndex];
+
+
+	int terrainHeight = currentBiome.terrainHeight + ((int)floor(20 * Get2DSimplex(x + position.x, z + position.z, currentBiome.terrainOffset, currentBiome.terrainScale)));
+	uint8_t voxelValue = 0;
+	for(int i = 0; i < currentBiome.sizeofBlocks; i++)
+	{
+		if(y >= terrainHeight - currentBiome.blocks[i].minHeight && y <= terrainHeight - currentBiome.blocks[i].maxHeight)
+		{
+			voxelValue = currentBiome.blocks[i].ID;
+		}
+	}
+
+	for(int i = 0; i < currentBiome.sizeofLodes; i++)
+	{
+		if (voxelValue == currentBiome.lodes[i].replaceVoxel)
+		{
+			if (y > currentBiome.lodes[i].minHeight && y < currentBiome.lodes[i].maxHeight)
 			{
-				voxelValue = lodes[0].ID;
+				if (Get3DSimplex(position.x + x, position.y + y, position.z + z, currentBiome.lodes[i].offset, currentBiome.lodes[i].scale) > currentBiome.lodes[i].threshold) // TODO(Aidan): Check this out later
+				{
+					voxelValue = currentBiome.lodes[i].ID;
+				}
 			}
 		}
 	}
 
-	if(y == terrainHeight)
+	for(int i = 0; i < currentBiome.sizeofStructures; i++)
+	if(y == terrainHeight - currentBiome.structures[i].height)
 	{
-		if(Get2DSimplex(x + position.x, z + position.z, 0.0f, 1.3f) > 0.6f)
+		if(Get2DSimplex(x + position.x, z + position.z, currentBiome.structures[i].offset, currentBiome.structures[i].scale) > currentBiome.structures[i].threshold)
 		{
-			if(Get2DSimplex(x + position.x, z + position.z, 0.0f, 15.0f) > 0.5f)
+			if(Get2DSimplex(x + position.x, z + position.z, currentBiome.structures[i].subOffset, currentBiome.structures[i].subScale) > currentBiome.structures[i].subThreshold)
 			{
-				VectorPushBackvectorvoxelmod(&modifications, MakeTree((ivec3s){x + position.x, y + position.y, z + position.z}, 5, 9));
+				VectorPushBackvectorvoxelmod(&modifications, GenerateStructure(currentBiome.structures[i].type, (ivec3s){x + position.x, y + position.y, z + position.z}, currentBiome.structures[i].minHeight, currentBiome.structures[i].maxHeight));
 			}
 		}
 	}

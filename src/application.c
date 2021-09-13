@@ -409,7 +409,7 @@ void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
     if(yOffset > 0)
 	{
-		if(currentBlock == 15)
+		if(currentBlock == 17)
 			currentBlock = 1;
 		else
 			currentBlock++;
@@ -417,7 +417,7 @@ void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 	else if(yOffset < 0)
 	{
 		if(currentBlock == 1)
-			currentBlock = 15;
+			currentBlock = 17;
 		else
 			currentBlock--;
 	}
