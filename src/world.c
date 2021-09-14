@@ -5,16 +5,18 @@ defineFuntionsVector(vectorvoxelmod, ((vectorvoxelmod){0}));
 
 struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z] = {0};
 
-struct Lode lodes[2] =
+struct Lode lodes[3] =
 {
-	{"Iron Ore", 12, 3, 20, 70, 0.0f, 0.25f, 0.7f},
-	{"Coal Ore", 13, 3, 50, 100, 500.0f, 0.125f, 0.75f}
+	{"Iron Ore", 12, 3, 256, 30, 0.0f, 0.25f, 0.7f},
+	{"Coal Ore", 13, 3, 256, 0, 500.0f, 0.125f, 0.75f},
+	{"Basic Cave", 0, 3, 100, 60, 1250.0f, 0.075f, 0.5f}
 };
 
-struct Biome biomes[2] =
+struct Biome biomes[] =
 {
-	{"Forest", 100, 0.0f, 1.0f, 0.0f, 0.25f, {0}, {0}, {0}},
-	{"Desert", 100, 500.0f, 1.0f, 0.0f, 0.25f, {0}, {0}, {0}}
+	{"Forest", 100, 0.0f, 0.25f, 0.0f, 0.25f, {0}, {0}, {0}},
+	{"Desert", 100, 500.0f, 0.25f, 0.0f, 0.25f, {0}, {0}, {0}}
+	//{"Mountain", 125, 500.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}}
 };
 
 int wnormals[6][3] = 
@@ -32,16 +34,17 @@ void WorldStart()
 	// BIOME 1
 	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
 	biomes[0].structures = calloc(1, sizeof(struct Structure));
-	biomes[0].lodes = calloc(2, sizeof(struct Lode));
+	biomes[0].lodes = calloc(3, sizeof(struct Lode));
 	biomes[0].blocks[0] = (struct BiomeBlock){2, 0, 0};
 	biomes[0].blocks[1] = (struct BiomeBlock){1, 5, 1};
 	biomes[0].blocks[2] = (struct BiomeBlock){3, 256, 6};
 	biomes[0].structures[0] = (struct Structure){TREE, 5, 9, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
 	biomes[0].lodes[0] = lodes[0];
 	biomes[0].lodes[1] = lodes[1];
+	biomes[0].lodes[2] = lodes[2];
 	biomes[0].sizeofBlocks = 3;
 	biomes[0].sizeofStructures = 1;
-	biomes[0].sizeofLodes = 2;
+	biomes[0].sizeofLodes = 3;
 
 	// BIOME 2
 	biomes[1].blocks = calloc(1, sizeof(struct BiomeBlock));
@@ -53,6 +56,17 @@ void WorldStart()
 	biomes[1].sizeofBlocks = 1;
 	biomes[1].sizeofStructures = 1;
 	biomes[1].sizeofLodes = 1;
+
+	// // BIOME 3
+	// biomes[2].blocks = calloc(1, sizeof(struct BiomeBlock));
+	// biomes[2].structures = calloc(0, sizeof(struct Structure));
+	// biomes[2].lodes = calloc(2, sizeof(struct Lode));
+	// biomes[2].blocks[0] = (struct BiomeBlock){3, 256, 0};
+	// biomes[2].lodes[0] = lodes[0];
+	// biomes[2].lodes[1] = lodes[1];
+	// biomes[2].sizeofBlocks = 1;
+	// biomes[2].sizeofStructures = 0;
+	// biomes[2].sizeofLodes = 2;
 
 	if(viewDistance == 0)
 		viewDistance = 4;
@@ -190,6 +204,8 @@ struct Chunk *GetChunk(int x, int z)
 {
 	if(IsChunkInWorld(x, z))
 		return chunks[x][z];
+	else 
+		return NULL;
 }
 
 uint8_t WorldGetVoxel(int x, int y, int z)
@@ -218,12 +234,12 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 	/* BASIC TERRAIN PASS */
 
 	struct Biome currentBiome;
-	int strongestBiomeIndex;
+	int strongestBiomeIndex = 0;
 	float strongestWeight = 0.0f;
 
 	for (int i = 0; i < (sizeof(biomes) / sizeof(biomes[0])); i++)
 	{
-        float weight = Get2DSimplex(position.x, position.z, biomes[i].offset, biomes[i].scale);
+        float weight = Get2DSimplex(position.x + x, position.z + z, biomes[i].offset, biomes[i].scale); // Addint the x and z to the position makes the chunk borders not harsh on biome change and instead smooths it
 
         if (weight > strongestWeight)
 		{
@@ -249,7 +265,7 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 	{
 		if (voxelValue == currentBiome.lodes[i].replaceVoxel)
 		{
-			if (y > currentBiome.lodes[i].minHeight && y < currentBiome.lodes[i].maxHeight)
+			if (y >= terrainHeight - currentBiome.lodes[i].minHeight && y <= terrainHeight - currentBiome.lodes[i].maxHeight)
 			{
 				if (Get3DSimplex(position.x + x, position.y + y, position.z + z, currentBiome.lodes[i].offset, currentBiome.lodes[i].scale) > currentBiome.lodes[i].threshold) // TODO(Aidan): Check this out later
 				{

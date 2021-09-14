@@ -18,7 +18,7 @@ defineVector(ivec2s);
 struct BiomeBlock
 {
 	uint8_t ID;
-	int minHeight, maxHeight;
+	 int minHeight, maxHeight;
 };
 
 enum StructureType
@@ -38,7 +38,7 @@ struct Lode
 {
 	const char *name;
 	uint8_t ID, replaceVoxel; // Maybe make "replaceVoxel" a array/vector
-	unsigned int minHeight, maxHeight;
+	int minHeight, maxHeight;
 	float offset, scale, threshold;
 };
 

@@ -42,13 +42,20 @@ struct Chunk
     vectorvoxelmod modifications;
 };
 
+struct VoxelMeshMod
+{
+    vec3s frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
+};
+
 struct Voxel
 {
     const char *name;
 
     uint8_t frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
 
-    bool isInvisible, renderNeighborFaces;
+    bool isInvisible, renderNeighborFaces, forceRenderFaces;
+
+    struct VoxelMeshMod voxelMeshMod;
 };
 
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);

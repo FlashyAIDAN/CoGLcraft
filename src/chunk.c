@@ -7,24 +7,24 @@ defineFuntionsVector(voxelmod, ((struct VoxelMod){(ivec3s){0, 0, 0}, 0}))
 
 struct Voxel voxels[18] =
 {
-	{"Air", -1, -1, -1, -1, -1, -1, true, true},
-	{"Dirt", 242, 242, 242, 242, 242, 242, false, false},
-	{"Grass", 243, 243, 243, 243, 240, 242, false, false},
-	{"Stone", 241, 241, 241, 241, 241, 241, false, false},
-	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false},
-	{"Log", 228, 228, 228, 228, 229, 229, false, false},
-	{"Leaf", 196, 196, 196, 196, 196, 196, false, true},
-	{"Glass", 193, 193, 193, 193, 193, 193, false, true},
-	{"Planks", 244, 244, 244, 244, 244, 244, false, false},
-	{"Bricks", 247, 247, 247, 247, 247, 247, false, false},
-	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false},
-	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false},
-	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false},
-	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false},
-	{"Diamon Ore", 194, 194, 194, 194, 194, 194, false, false},
-	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false},
-	{"Sand", 226, 226, 226, 226, 226, 226, false, false},
-	{"Cactus", 182, 182, 182, 182, 183, 183, false, true}
+	{"Air", -1, -1, -1, -1, -1, -1, true, true, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Dirt", 242, 242, 242, 242, 242, 242, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Grass", 243, 243, 243, 243, 240, 242, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Stone", 241, 241, 241, 241, 241, 241, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Log", 228, 228, 228, 228, 229, 229, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Leaf", 196, 196, 196, 196, 196, 196, false, true, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Glass", 193, 193, 193, 193, 193, 193, false, true, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Planks", 244, 244, 244, 244, 244, 244, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Bricks", 247, 247, 247, 247, 247, 247, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Diamon Ore", 194, 194, 194, 194, 194, 194, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Sand", 226, 226, 226, 226, 226, 226, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Cactus", 182, 182, 182, 182, 183, 183, false, true, true, {{0.0f, 0.0f, -0.05f}, {0.0f, 0.0f, 0.05f}, {0.05f, 0.0f, 0.0f}, {-0.05f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}}
 };
 
 float verticeData[8][3] = 
@@ -95,108 +95,45 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 	{
 		for(int i = 0; i < 6; i++)
 		{
-				if(voxels[GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2])].renderNeighborFaces)
+				if(voxels[ID].forceRenderFaces || voxels[GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2])].renderNeighborFaces)
 				{
-					//printf("%i", (int)GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2]));
-					if(ID == 17)
-					{ // TODO: FIX CACTUS MODEL and Make this less hardcoded and a proper way of doing it
-						float modelSub = -0.1f;
-						if (i == 2 || i == 3)
-							modelSub = 0.1f;
-						if(i == 4 || i == 5)
-							modelSub = 0.0f;
-						
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][0]][0] + modelSub + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][0]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][0]][2] + modelSub + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][1]][0] + modelSub + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][1]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][1]][2] + modelSub + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][2]][0] + modelSub + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][2]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][2]][2] + modelSub + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][3]][0] + modelSub + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][3]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, (float)verticeData[indiceData[i][3]][2] + modelSub + z);
-
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-
-						uint8_t textureID = 0;
-						switch (i)
-						{
-						case 0:
-							textureID = voxels[ID].frontFace;
-							break;
-						case 1:
-							textureID = voxels[ID].backFace;
-							break;
-						case 2:
-							textureID = voxels[ID].leftFace;
-							break;
-						case 3:
-							textureID = voxels[ID].rightFace;
-							break;
-						case 4:
-							textureID = voxels[ID].topFace;
-							break;
-						case 5:
-							textureID = voxels[ID].bottomFace;
-							break;
-						
-						default:
-							break;
-						}
-
-						float uvy = (float)(textureID / TEXTURE_ATLAS_SIZE_IN_BLOCKS);
-						float uvx = (float)(textureID - (uvy * TEXTURE_ATLAS_SIZE_IN_BLOCKS));
-
-						float normalized = 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
-
-						uvx *= normalized;
-						uvy *= normalized;
-
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
-
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 3);
-						chunk->indiceIndex += 4;
-					}
-					else
+					vec3s voxelModMeshFace;
+					switch (i)
 					{
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][0] + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][2] + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][0] + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][2] + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][0] + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][1] + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][2] + z);
+					case 0:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.frontFace;
+						break;
+					case 1:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.backFace;
+						break;
+					case 2:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.leftFace;
+						break;
+					case 3:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.rightFace;
+						break;
+					case 4:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.topFace;
+						break;
+					case 5:
+						voxelModMeshFace = voxels[ID].voxelMeshMod.bottomFace;
+						break;
+					
+					default:
+						break;
+					}
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + voxelModMeshFace.x + x);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y + y);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z + z);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][0] + voxelModMeshFace.x + x);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][1] + voxelModMeshFace.y + y);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][2] + voxelModMeshFace.z + z);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][0] + voxelModMeshFace.x + x);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y + y);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z + z);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][0] + voxelModMeshFace.x + x);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y + y);
+						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z + z);
 
 						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
 						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
@@ -261,7 +198,7 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
 						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 3);
 						chunk->indiceIndex += 4;
-					}
+					
 				}
 		}
 	}
