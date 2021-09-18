@@ -24,13 +24,15 @@ struct BiomeBlock
 enum StructureType
 {
 	TREE,
-	CACTUS
+	CACTUS,
+	PLANT
 };
 
 struct Structure
 {
 	enum StructureType type;
 	int minHeight, maxHeight, height;
+	uint8_t ID;
 	float offset, scale, threshold, subOffset, subScale, subThreshold;
 };
 
@@ -59,10 +61,17 @@ typedef struct VoxelMod
     ivec3s position;
     uint8_t ID;
 } voxelmod;
-
 defineVector(voxelmod)
 defineVector(vectorvoxelmod);
 #include "chunk.h"
+
+struct Dimension
+{
+	const char *name;
+	struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z];
+	struct Biome *biomes;
+	int sizeofBiomes;
+};
 
 int viewDistance;
 

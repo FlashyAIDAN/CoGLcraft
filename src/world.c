@@ -3,8 +3,6 @@
 defineFuntionsVector(ivec2s, ((ivec2s){0.0f, 0.0f}));
 defineFuntionsVector(vectorvoxelmod, ((vectorvoxelmod){0}));
 
-struct Chunk *chunks[NUMBER_OF_CHUNKS_X][NUMBER_OF_CHUNKS_Z] = {0};
-
 struct Lode lodes[3] =
 {
 	{"Iron Ore", 12, 3, 256, 30, 0.0f, 0.25f, 0.7f},
@@ -14,9 +12,14 @@ struct Lode lodes[3] =
 
 struct Biome biomes[] =
 {
-	{"Forest", 100, 0.0f, 0.25f, 0.0f, 0.25f, {0}, {0}, {0}},
-	{"Desert", 100, 500.0f, 0.25f, 0.0f, 0.25f, {0}, {0}, {0}}
+	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}, 3, 2, 3},
+	{"Desert", 100, 500.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}, 1, 1, 1}
 	//{"Mountain", 125, 500.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}}
+};
+
+struct Dimension dimensions[] =
+{
+	{"Overworld", {0}, {0}, 2}
 };
 
 int wnormals[6][3] = 
@@ -33,29 +36,24 @@ void WorldStart()
 {
 	// BIOME 1
 	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
-	biomes[0].structures = calloc(1, sizeof(struct Structure));
+	biomes[0].structures = calloc(2, sizeof(struct Structure));
 	biomes[0].lodes = calloc(3, sizeof(struct Lode));
 	biomes[0].blocks[0] = (struct BiomeBlock){2, 0, 0};
 	biomes[0].blocks[1] = (struct BiomeBlock){1, 5, 1};
 	biomes[0].blocks[2] = (struct BiomeBlock){3, 256, 6};
-	biomes[0].structures[0] = (struct Structure){TREE, 5, 9, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[0].structures[0] = (struct Structure){TREE, 4, 7, 0, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[0].structures[1] = (struct Structure){PLANT, 0, 0, 0, 18, 1000.0f, 2.0f, 0.3f, 0.0f, 15.0f, 0.5f};
 	biomes[0].lodes[0] = lodes[0];
 	biomes[0].lodes[1] = lodes[1];
 	biomes[0].lodes[2] = lodes[2];
-	biomes[0].sizeofBlocks = 3;
-	biomes[0].sizeofStructures = 1;
-	biomes[0].sizeofLodes = 3;
 
 	// BIOME 2
 	biomes[1].blocks = calloc(1, sizeof(struct BiomeBlock));
 	biomes[1].structures = calloc(1, sizeof(struct Structure));
 	biomes[1].lodes = calloc(1, sizeof(struct Lode));
 	biomes[1].blocks[0] = (struct BiomeBlock){16, 256, 0};
-	biomes[1].structures[0] = (struct Structure){CACTUS, 5, 9, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[1].structures[0] = (struct Structure){CACTUS, 5, 10, 0, 0, 750.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
 	biomes[1].lodes[0] = lodes[1];
-	biomes[1].sizeofBlocks = 1;
-	biomes[1].sizeofStructures = 1;
-	biomes[1].sizeofLodes = 1;
 
 	// // BIOME 3
 	// biomes[2].blocks = calloc(1, sizeof(struct BiomeBlock));
@@ -67,6 +65,10 @@ void WorldStart()
 	// biomes[2].sizeofBlocks = 1;
 	// biomes[2].sizeofStructures = 0;
 	// biomes[2].sizeofLodes = 2;
+
+	dimensions[0].biomes = calloc(2, sizeof(struct Biome));
+	dimensions[0].biomes[0] = biomes[0];
+	dimensions[0].biomes[1] = biomes[1];
 
 	if(viewDistance == 0)
 		viewDistance = 4;
@@ -81,8 +83,8 @@ void WorldStart()
 	{
 		for (int z = (NUMBER_OF_CHUNKS_Z / 2) - viewDistance; z < (NUMBER_OF_CHUNKS_Z / 2) + viewDistance; z++)
 		{
-			chunks[x][z] = malloc(sizeof(struct Chunk));
-			MakeChunk(chunks[x][z], x, 0, z);
+			dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
+			MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
 			VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
 			VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
 		}
@@ -94,7 +96,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	
 	if(VectorTotalivec2s(&updateMesh) > 0)
 	{
-		CreateVoxels(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
+		CreateVoxels(dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		// int count = 0;
 		while (VectorTotalvectorvoxelmod(&modifications) > 0)
 		{
@@ -107,41 +109,41 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 
 				if(IsChunkInWorld((int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)))
 				{
-					if (chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] == 0)
+					if (dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] == 0)
 					{
-						chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] = malloc(sizeof(struct Chunk));
-						MakeChunk(chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)], (int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), 0, (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z));
+						dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)] = malloc(sizeof(struct Chunk));
+						MakeChunk(dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)], (int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), 0, (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z));
 						VectorPushBackivec2s(&updateMesh, (ivec2s){(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)});
 					}
-					else if(!chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modified && chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->renderable)
+					else if(!dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modified && dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->renderable)
 					{
 						VectorPushBackivec2s(&modifyMesh, (ivec2s){(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)});
-						chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modified = true;
+						dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modified = true;
 					}
-					VectorPushBackvoxelmod(&chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modifications, voxel);
+					VectorPushBackvoxelmod(&dimensions[0].chunks[(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X)][(int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)]->modifications, voxel);
 				}
 			}
 			// count++;
 			// if (count > 200) // Splits work up each frame for every 200 voxels
 				// return;
 		}
-		CreateVertices(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
-	 	CreateChunkBufferData(chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
+		CreateVertices(dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
+	 	CreateChunkBufferData(dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		VectorDeleteivec2s(&updateMesh, 0);
 	}
 	while(VectorTotalivec2s(&modifyMesh) > 0)
 	{
-		ClearChunk(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
-		CreateVertices(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
-	 	CreateChunkBufferData(chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
-		chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]->modified = false;
+		ClearChunk(dimensions[0].chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
+		CreateVertices(dimensions[0].chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
+	 	CreateChunkBufferData(dimensions[0].chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
+		dimensions[0].chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]->modified = false;
 		VectorDeleteivec2s(&modifyMesh, 0);
 	}
 	
 	BindTexture(texture);
 	for(int i = 0; i < VectorTotalivec2s(&activeChunks); i++)
-		if(chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y]->renderable)
-			RenderChunk(chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y], shader);
+		if(dimensions[0].chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y]->renderable)
+			RenderChunk(dimensions[0].chunks[VectorGetivec2s(&activeChunks, i).x][VectorGetivec2s(&activeChunks, i).y], shader);
 }
 
 void WorldDelete()
@@ -153,7 +155,7 @@ void WorldDelete()
 	{
 		for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
 		{
-			DeleteChunk(chunks[x][z]);
+			DeleteChunk(dimensions[0].chunks[x][z]);
 		}
 	}
 }
@@ -169,10 +171,10 @@ void UpdateViewDistance(ivec2s currentChunk) // TODO(Aidan): Maybe find a way of
 		{
 			if (IsChunkInWorld(x, z))
 			{
-				if (chunks[x][z] == 0)
+				if (dimensions[0].chunks[x][z] == 0)
 				{
-					chunks[x][z] = malloc(sizeof(struct Chunk));
-					MakeChunk(chunks[x][z], x, 0, z);
+					dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
+					MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
 					VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
 				}
 				VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
@@ -203,7 +205,7 @@ void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID)
 struct Chunk *GetChunk(int x, int z)
 {
 	if(IsChunkInWorld(x, z))
-		return chunks[x][z];
+		return dimensions[0].chunks[x][z];
 	else 
 		return NULL;
 }
@@ -217,7 +219,7 @@ uint8_t WorldGetVoxel(int x, int y, int z)
 		return 0;
 	else
 	{
-		struct Chunk *currentChunk = chunks[_x][_z];
+		struct Chunk *currentChunk = dimensions[0].chunks[_x][_z];
 		if(currentChunk == 0 || !currentChunk->populated)
 			return GenerateVoxel((vec3s){_x * CHUNK_SIZE_X, 0, _z * CHUNK_SIZE_Z}, x - (_x * CHUNK_SIZE_X), y, z - (_z * CHUNK_SIZE_Z));
 		else
@@ -233,13 +235,14 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 
 	/* BASIC TERRAIN PASS */
 
+	struct Dimension currentDimension = dimensions[0];
 	struct Biome currentBiome;
 	int strongestBiomeIndex = 0;
 	float strongestWeight = 0.0f;
 
-	for (int i = 0; i < (sizeof(biomes) / sizeof(biomes[0])); i++)
+	for (int i = 0; i < currentDimension.sizeofBiomes; i++)
 	{
-        float weight = Get2DSimplex(position.x + x, position.z + z, biomes[i].offset, biomes[i].scale); // Addint the x and z to the position makes the chunk borders not harsh on biome change and instead smooths it
+        float weight = Get2DSimplex(position.x + x, position.z + z, currentDimension.biomes[i].offset, currentDimension.biomes[i].scale); // Addint the x and z to the position makes the chunk borders not harsh on biome change and instead smooths it
 
         if (weight > strongestWeight)
 		{
@@ -248,8 +251,7 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 		}
     }
 
-	currentBiome = biomes[strongestBiomeIndex];
-
+	currentBiome = currentDimension.biomes[strongestBiomeIndex];
 
 	int terrainHeight = currentBiome.terrainHeight + ((int)floor(20 * Get2DSimplex(x + position.x, z + position.z, currentBiome.terrainOffset, currentBiome.terrainScale)));
 	uint8_t voxelValue = 0;
@@ -282,7 +284,7 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 		{
 			if(Get2DSimplex(x + position.x, z + position.z, currentBiome.structures[i].subOffset, currentBiome.structures[i].subScale) > currentBiome.structures[i].subThreshold)
 			{
-				VectorPushBackvectorvoxelmod(&modifications, GenerateStructure(currentBiome.structures[i].type, (ivec3s){x + position.x, y + position.y, z + position.z}, currentBiome.structures[i].minHeight, currentBiome.structures[i].maxHeight));
+				VectorPushBackvectorvoxelmod(&modifications, GenerateStructure(currentBiome.structures[i].type, (ivec3s){x + position.x, y + position.y, z + position.z}, currentBiome.structures[i].minHeight, currentBiome.structures[i].maxHeight,  currentBiome.structures[i].ID));
 			}
 		}
 	}

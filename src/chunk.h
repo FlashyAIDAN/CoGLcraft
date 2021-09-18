@@ -53,10 +53,12 @@ struct Voxel
 
     uint8_t frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
 
-    bool isInvisible, renderNeighborFaces, forceRenderFaces;
+    bool invisible, renderNeighborFaces, forceRenderFaces, cross;
 
     struct VoxelMeshMod voxelMeshMod;
 };
+
+struct Voxel voxels[19];
 
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 

@@ -1,6 +1,6 @@
 #include "structure.h"
 
-vectorvoxelmod GenerateStructure(enum StructureType type, ivec3s position, int minHeight, int maxHeight)
+vectorvoxelmod GenerateStructure(enum StructureType type, ivec3s position, int minHeight, int maxHeight, uint8_t ID)
 {
 	VECTOR_INIT(voxelmod, mods);
 	switch (type)
@@ -11,6 +11,10 @@ vectorvoxelmod GenerateStructure(enum StructureType type, ivec3s position, int m
 	
 	case CACTUS:
 		mods = MakeCactus(position, minHeight, maxHeight);
+		break;
+
+	case PLANT:
+		mods = MakePlants(position, ID);
 		break;
 
 	default:
@@ -51,6 +55,15 @@ vectorvoxelmod MakeCactus(ivec3s position, int minTrunkHeight, int maxTrunkHeigh
 
 	for (int i = 1; i < height; i++)
         VectorPushBackvoxelmod(&mods, (struct VoxelMod){(ivec3s){position.x, position.y + i, position.z}, 17});
+
+	return mods;
+}
+
+vectorvoxelmod MakePlants(ivec3s position, uint8_t ID)
+{
+	VECTOR_INIT(voxelmod, mods);
+
+	VectorPushBackvoxelmod(&mods, (struct VoxelMod){(ivec3s){position.x, position.y + 1, position.z}, ID});
 
 	return mods;
 }
