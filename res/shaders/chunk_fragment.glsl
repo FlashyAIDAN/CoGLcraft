@@ -3,9 +3,12 @@ out vec4 fragColor;
 
 in vec3 ourColor;
 in vec2 texCoord;
+in vec3 viewpos;
 
 // texture samplers
 uniform sampler2D texture1;
+uniform float fogNear;
+uniform float fogFar;
 
 void main()
 {
@@ -14,5 +17,5 @@ void main()
 	if(color.a < 0.1)
 		discard;
 
-	fragColor = color;
+	fragColor = color * (1.0 - smoothstep(fogNear, fogFar, length(viewpos)));
 }

@@ -81,7 +81,7 @@ vectorivec2s modifyMesh;
 
 vectorvectorvoxelmod modifications;
 
-void WorldStart();
+void WorldStart(struct Shader *shader);
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
 void WorldDelete();
 void UpdateViewDistance(ivec2s currentChunk);

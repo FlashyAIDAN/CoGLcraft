@@ -32,7 +32,7 @@ int wnormals[6][3] =
     { 0, -1,  0}
 };
 
-void WorldStart()
+void WorldStart(struct Shader *shader)
 {
 	// BIOME 1
 	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
@@ -72,6 +72,9 @@ void WorldStart()
 
 	if(viewDistance == 0)
 		viewDistance = 4;
+
+	SetShaderFloat(shader, "fogNear", viewDistance * CHUNK_SIZE_X - 25.0f, true);
+	SetShaderFloat(shader, "fogFar", viewDistance * CHUNK_SIZE_X, false);
 	
 	VectorInitivec2s(&activeChunks);
 	VectorInitivec2s(&updateMesh);

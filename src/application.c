@@ -150,7 +150,7 @@ int main(int argc, const char *argv[])
     //printf("Found \"%s\" after \"%s\"\n\n", word, seedString);
 	SimplexInit((int)strtol(word, (char **)NULL, 10));
 
-	WorldStart();
+	WorldStart(&player.shader);
 
 	SetShaderInteger(&uiShader, "sprite", 0, true);
 	SetShaderMatrix4(&uiShader, "projection", glms_ortho(-((float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f, -((float)(screenHeight / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenHeight / igcd(screenWidth, screenHeight) / 2.0f / 10.0f), -1.0f, 1.0f), false);
