@@ -33,7 +33,7 @@ struct Chunk
 
     vec3s position;
 
-    unsigned int x, z, VBO, VAO, EBO, CBO, UVBO, indiceIndex;
+    unsigned int x, z, VBO, VAO, EBO, CBO, UVBO, indiceIndex; // x, z, VBO, EBO, CBO, UVBO, indicieIndex are unnecessary
 
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
 

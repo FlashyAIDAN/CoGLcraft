@@ -155,36 +155,51 @@ void WorldDelete()
 	VectorFreeivec2s(&activeChunks);
 
 	int written = 0; // TODO(Aidan):Read and Write Chunk Data From file
-	FILE *f = fopen("res/saves/main.world", "w");
-	if (f == NULL)
-      printf("/nError to open the file!\n");
 
-	for(int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
+	for(unsigned int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
 	{
-		for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
+		for(unsigned int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
 		{
-			for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
+			for(unsigned int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
 			{
-				if(dimensions[i].chunks[x][z] != 0 && dimensions[i].chunks[x][z]->renderable)
+				if(dimensions[i].chunks[x][z] != 0 && dimensions[i].chunks[x][z]->renderable && dimensions[i].chunks[x][z]->populated)
 				{
-					written = fwrite(&dimensions[i].chunks[x][z], sizeof(struct Chunk), 1, f);
-					if (written == 0)
-						printf("Error during writing to file!\n");
+					char s[10000]; // This is not perminent an will eventually run out of char space, once x gets too big
+					sprintf(s, "res/saves/main/chunks/x%dz%d.chunk", x, z);
+					FILE *f = fopen(s, "w");
+					if (f == NULL)
+      					printf("/nError to open the file!\n");
+					for(unsigned int cx = 0; cx < CHUNK_SIZE_X; cx++)
+					{
+						for(unsigned int cy = 0; cy < CHUNK_SIZE_Y; cy++)
+						{
+							for(unsigned int cz = 0; cz < CHUNK_SIZE_Z; cz++)
+							{
+								written = fwrite(&dimensions[i].chunks[x][z]->voxels[cx][cy][cz], sizeof(uint8_t), 1, f);
+								if (written == 0)
+									printf("Error during writing to file!\n");
+							}
+						}
+					}
+
+				fclose(f);
 				}
 			}
 		}
 	}
-	fclose(f);
 
-	FILE *inf;
-	struct Chunk inp;
-   	inf = fopen ("res/saves/main.world", "r");
-   	if (inf == NULL)
-    	printf("Error to open the file!\n");
+	// TODO(Aidan): Open Chunk Files
 
-   	while(fread(&inp, sizeof(struct Chunk), 1, inf))
-      	printf ("roll_no = %d name = %d\n", inp.x, inp.z);
-   	fclose (inf);
+	// FILE *inf;
+	// uint8_t inp;
+   	// inf = fopen ("res/saves/main.world", "r");
+   	// if (inf == NULL)
+    // printf("Error to open the file!\n");
+
+   	// while(fread(&inp, sizeof(uint8_t), 1, inf))
+   	// 	printf ("voxel: %d\n", inp);
+	// fclose (inf);
+	
 	for(int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
 	{
 		for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
