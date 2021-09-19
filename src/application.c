@@ -5,6 +5,7 @@
 #include "utils/texture.h"
 #include "utils/shader.h"
 #include "utils/emath.h"
+#include "player.h"
 #include "world.h"
 
 #include <stb_image.h>
@@ -42,12 +43,12 @@ float currentFrame = 0.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-struct Camera camera;
 struct Texture2D texture;
 struct Texture2D crosshair;
 struct Texture2D currentBlockItems[(sizeof(voxels) / sizeof(voxels[0])) - 1];
-struct Shader shader;
 struct Shader uiShader;
+struct Shader playerShader;
+struct Player player;
 
 bool debugLines = false;
 
@@ -126,9 +127,10 @@ int main(int argc, const char *argv[])
 
 		currentBlockItems[i] = MakeTexture(result1, &currentBlockItems[i], true);
 	}
-	shader = MakeShader("res/shaders/chunk_vertex.glsl", "res/shaders/chunk_fragment.glsl", NULL);
+	playerShader = MakeShader("res/shaders/chunk_vertex.glsl", "res/shaders/chunk_fragment.glsl", NULL);
 	uiShader = MakeShader("res/shaders/ui_vertex.glsl", "res/shaders/ui_fragment.glsl", NULL);
-	camera = MakeCamera(&shader, (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z }, -90.0f, 0.0f, screenWidth, screenHeight);
+	player = MakePlayer(playerShader, screenWidth, screenHeight);
+	player.position = (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z };
 
 	// Read Config File
 	char *str = ReadFile("res/settings.config");
@@ -138,7 +140,7 @@ int main(int argc, const char *argv[])
     char word[100];
     sscanf(strstr(str, sensString) + strlen(sensString), "%99s", word);
     //printf("Found \"%s\" after \"%s\"\n\n", word, sensString);
-	camera.sensitivity = strtof(word, NULL);
+	player.camera.sensitivity = strtof(word, NULL);
 
 	sscanf(strstr(str, vdString) + strlen(vdString), "%99s", word);
     //printf("Found \"%s\" after \"%s\"\n\n", word, vdString);
@@ -150,12 +152,10 @@ int main(int argc, const char *argv[])
 
 	WorldStart();
 
-	SetShaderInteger(&shader, "texture1", 0, true);
-	SetShaderMatrix4(&shader, "projection", camera.viewProjection.projection, false);
 	SetShaderInteger(&uiShader, "sprite", 0, true);
 	SetShaderMatrix4(&uiShader, "projection", glms_ortho(-((float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f, -((float)(screenHeight / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenHeight / igcd(screenWidth, screenHeight) / 2.0f / 10.0f), -1.0f, 1.0f), false);
 
-	currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
+	currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
 	oldChunk = currentChunk;
 
 	// Outline Cube Test
@@ -246,27 +246,27 @@ int main(int argc, const char *argv[])
 
 		// Get Current Chunk
 		//printf("Current Chunk(X: %i, Z: %i)\n", currentChunk.x, currentChunk.y);
-		currentChunk = GetCurrentChunkCoordinates(camera.position.x, camera.position.z);
+		currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
 		if(oldChunk.x != currentChunk.x || oldChunk.y != currentChunk.y)
 		{
 			oldChunk = currentChunk;
 			UpdateViewDistance(currentChunk);
 		}
 
-		UpdateCameraVectors(&camera, &shader);
+		PlayerUpdate(&player, deltaTime);
 
 		// UseShader(&shader);
-		WorldRender(&texture, &shader);
+		WorldRender(&texture, &player.shader);
 
 		// Outline Cube Test
-		ivec3s oCubePos = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, false);
+		ivec3s oCubePos = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, false);
 		mat4s oCubeModel = { 1.0f, 0.0f, 0.0f, 0.0f,
                  		 	0.0f, 1.0f, 0.0f, 0.0f,
                     	 	0.0f, 0.0f, 1.0f, 0.0f,
                     	 	0.0f, 0.0f, 0.0f, 1.0f };
 		oCubeModel = glms_translate(oCubeModel, (vec3s){oCubePos.x - 0.025f, oCubePos.y - 0.025f, oCubePos.z - 0.025f});
 		oCubeModel = glms_scale(oCubeModel, (vec3s){1.05f, 1.05f, 1.05f});
-		SetShaderMatrix4(&shader, "model", oCubeModel, true);
+		SetShaderMatrix4(&player.shader, "model", oCubeModel, true);
 		glBindVertexArray(oCubeVAO);
 		glDrawElements(GL_LINES, 36, GL_UNSIGNED_INT, 0);
 
@@ -365,36 +365,42 @@ void ProcessInput()
 		}
 	}
 
-	float velocity = camera.speed * deltaTime;
-    if(GetKey(GLFW_KEY_W))
-        camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.front, (vec3s){velocity, velocity, velocity}));
-    if(GetKey(GLFW_KEY_S))
-        camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.front, (vec3s){velocity, velocity, velocity}));
-    if(GetKey(GLFW_KEY_A))
-        camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.right, (vec3s){velocity, velocity, velocity}));
-    if(GetKey(GLFW_KEY_D))
-        camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.right, (vec3s){velocity, velocity, velocity}));
-	if(GetKey(GLFW_KEY_SPACE))
-		camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.worldUp, (vec3s){velocity, velocity, velocity}));
-	if(GetKey(GLFW_KEY_LEFT_SHIFT))
-		camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.worldUp, (vec3s){velocity, velocity, velocity}));
-	if(GetKey(GLFW_KEY_Q))
-		camera.position = glms_vec3_add(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
-	if(GetKey(GLFW_KEY_E))
-		camera.position = glms_vec3_sub(camera.position, glms_vec3_mul(camera.up, (vec3s){velocity, velocity, velocity}));
+	if (GetKey(GLFW_KEY_W))
+        player.vertical = 1;
+    if (GetKey(GLFW_KEY_S))
+        player.vertical = -1;
+    if (GetKeyReleased(GLFW_KEY_W) && GetKeyReleased(GLFW_KEY_S))
+        player.vertical = 0;
+
+    if (GetKey(GLFW_KEY_A))
+        player.horizontal = -1;
+    if (GetKey(GLFW_KEY_D))
+        player.horizontal = 1;
+    if (GetKeyReleased(GLFW_KEY_A) && GetKeyReleased(GLFW_KEY_D))
+        player.horizontal = 0;
+
+    if (GetKey(GLFW_KEY_LEFT_SHIFT))
+        player.isSprinting = true;
+    else
+        player.isSprinting = false;
+
+    if (player.isGrounded && GetKey(GLFW_KEY_SPACE))
+    {
+        player.jumpRequest = true;
+    }
 
 	if(GetKeyDown(GLFW_KEY_EQUAL))
-		camera.speed++;
+		player.speed++;
 	if(GetKeyDown(GLFW_KEY_MINUS))
 	{
-		camera.speed--;
-		if(camera.speed <= 1.0f)
-			camera.speed = 1.0f;
+		player.speed--;
+		if(player.speed <= 1.0f)
+			player.speed = 1.0f;
 	}
 
 	if(GetKeyDown(GLFW_MOUSE_BUTTON_LEFT))
 	{
-		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, false);
+		ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, false);
 		if(block.x >= 0 && block.y >= 0 && block.z >= 0)
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
@@ -404,7 +410,7 @@ void ProcessInput()
 	}
 	if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
 	{
-		ivec3s block = GetBlockLookedAt(camera.position, camera.front, 8.0f, 0.1f, true);
+		ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
 		if(block.x >= 0 && block.y >= 0 && block.z >= 0)
 		{
 			struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
@@ -475,7 +481,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
 	screenWidth = width;
 	screenHeight = height;
-	UpdateCameraPerspective(&camera, &shader, width, height);
+	UpdateCameraPerspective(&player.camera, &player.shader, width, height);
 	//SetShaderMatrix4(&uiShader, "projection", glms_ortho(-((float)(width / igcd(width, height)) / 2.0f / 10.0f), (float)(width / igcd(width, height)) / 2.0f / 10.0f, -((float)(height / igcd(width, height)) / 2.0f / 10.0f), (float)(height / igcd(width, height) / 2.0f / 10.0f), -1.0f, 1.0f), true);
 
 	glViewport(0, 0, width, height);
@@ -498,19 +504,19 @@ void MouseCallback(GLFWwindow *window, double xPos, double yPos)
     lastX = xPos;
     lastY = yPos;
 
-    xOffset *= camera.sensitivity;
-    yOffset *= camera.sensitivity;
+    xOffset *= player.camera.sensitivity;
+    yOffset *= player.camera.sensitivity;
 
-    camera.yaw += xOffset;
-    camera.pitch += yOffset;
+    player.camera.yaw += xOffset;
+    player.camera.pitch += yOffset;
 
-    camera.yaw += xOffset;
-    camera.pitch += yOffset;
+    player.camera.yaw += xOffset;
+    player.camera.pitch += yOffset;
 
-    if(camera.pitch > 89.0f)
-        camera.pitch = 89.0f;
-    if(camera.pitch < -89.0f)
-        camera.pitch = -89.0f;
+    if(player.camera.pitch > 89.0f)
+        player.camera.pitch = 89.0f;
+    if(player.camera.pitch < -89.0f)
+        player.camera.pitch = -89.0f;
 }
 
 void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)

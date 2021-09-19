@@ -16,7 +16,7 @@ struct ViewProjection
 struct Camera
 {
     struct ViewProjection viewProjection;
-    vec3s position, front, up, right, worldUp;
+    vec3s position, front, forward, up, right, worldUp;
     float yaw, pitch, speed, sensitivity, fov, nearZ, farZ;
 };
 

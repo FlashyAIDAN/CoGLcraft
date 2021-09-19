@@ -53,7 +53,7 @@ struct Voxel
 
     uint8_t frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
 
-    bool invisible, renderNeighborFaces, forceRenderFaces, cross;
+    bool invisible, renderNeighborFaces, forceRenderFaces, cross, collider;
 
     struct VoxelMeshMod voxelMeshMod;
 };

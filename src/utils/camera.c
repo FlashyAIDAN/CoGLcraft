@@ -9,6 +9,7 @@ void UpdateCameraVectors(struct Camera *camera, struct Shader *shader)
     camera->front = glms_normalize(front);
     camera->right = glms_normalize(glms_cross(camera->front, camera->worldUp));
     camera->up = glms_normalize(glms_cross(camera->right, camera->front));
+    camera->forward = glms_cross(camera->worldUp, camera->right);
 
     camera->viewProjection.view = glms_lookat(camera->position, glms_vec3_add(camera->position, camera->front), camera->up);
     SetShaderMatrix4(shader, "view", camera->viewProjection.view, true);

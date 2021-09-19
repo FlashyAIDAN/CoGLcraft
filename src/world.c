@@ -12,14 +12,14 @@ struct Lode lodes[3] =
 
 struct Biome biomes[] =
 {
-	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}, 3, 2, 3},
-	{"Desert", 100, 500.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}, 1, 1, 1}
-	//{"Mountain", 125, 500.0f, 0.125f, 0.0f, 0.25f, {0}, {0}, {0}}
+	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 3, 2, 3},
+	{"Desert", 100, 500.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 1, 1, 1}
+	//{"Mountain", 125, 500.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL}
 };
 
 struct Dimension dimensions[] =
 {
-	{"Overworld", {0}, {0}, 2}
+	{"Overworld", {0}, NULL, 2}
 };
 
 int wnormals[6][3] = 
@@ -41,8 +41,8 @@ void WorldStart()
 	biomes[0].blocks[0] = (struct BiomeBlock){2, 0, 0};
 	biomes[0].blocks[1] = (struct BiomeBlock){1, 5, 1};
 	biomes[0].blocks[2] = (struct BiomeBlock){3, 256, 6};
-	biomes[0].structures[0] = (struct Structure){TREE, 4, 7, 0, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
-	biomes[0].structures[1] = (struct Structure){PLANT, 0, 0, 0, 18, 1000.0f, 2.0f, 0.3f, 0.0f, 15.0f, 0.5f};
+	biomes[0].structures[0] = (struct Structure){PLANT, 0, 0, 0, 18, 1000.0f, 2.0f, 0.3f, 0.0f, 15.0f, 0.5f}; // Make sure this is first or else they will replace the base trunk of trees ifd they overlap
+	biomes[0].structures[1] = (struct Structure){TREE, 4, 7, 0, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
 	biomes[0].lodes[0] = lodes[0];
 	biomes[0].lodes[1] = lodes[1];
 	biomes[0].lodes[2] = lodes[2];
@@ -185,7 +185,7 @@ void UpdateViewDistance(ivec2s currentChunk) // TODO(Aidan): Maybe find a way of
 
 void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID)
 {
-	if(IsVoxelInWorld(position.x, position.y, position.z) && IsVoxelInChunk(chunk, position.x, position.y, position.z))
+	if(IsVoxelInWorld(position.x, position.y, position.z) && IsVoxelInChunk(chunk, position.x, position.y, position.z) && chunk->renderable)
 	{
 		chunk->voxels[position.x][position.y][position.z] = ID;
 		VectorPushBackivec2s(&modifyMesh, (ivec2s){chunk->x, chunk->z});
@@ -193,10 +193,10 @@ void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID)
 		// Update Surrounding Voxels
 		ivec3s thisVoxel = (ivec3s){position.x, position.y, position.z};
 
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 4; i++) // Some useful info for the future. This has to be 6 when doing chunks that are on the y axis (vetically infiniate terrain) because right now its only checking if it needs to update the mesh of surround chunks on its xz axis. Same for similar things
 		{
 			ivec3s currentVoxel = glms_ivec3_add(thisVoxel, (ivec3s){wnormals[i][0], wnormals[i][1], wnormals[i][2]});
-			if (!IsVoxelInChunk(chunk, currentVoxel.x, currentVoxel.y, currentVoxel.z))
+			if (!IsVoxelInChunk(chunk, currentVoxel.x, currentVoxel.y, currentVoxel.z) && dimensions[0].chunks[(int)floorf((float)(currentVoxel.x + chunk->position.x) / (float)CHUNK_SIZE_X)][(int)floorf((float)(currentVoxel.z + chunk->position.z) / (float)CHUNK_SIZE_Z)]->renderable)
 				VectorPushBackivec2s(&modifyMesh, (ivec2s){(int)floorf((float)(currentVoxel.x + chunk->position.x) / (float)CHUNK_SIZE_X), (int)floorf((float)(currentVoxel.z + chunk->position.z) / (float)CHUNK_SIZE_Z)});
 		}
 	}
