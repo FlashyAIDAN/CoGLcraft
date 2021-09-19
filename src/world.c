@@ -10,14 +10,14 @@ struct Lode lodes[3] =
 	{"Basic Cave", 0, 3, 100, 60, 1250.0f, 0.075f, 0.5f}
 };
 
-struct Biome biomes[] =
+struct Biome biomes[2] =
 {
 	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 3, 2, 3},
 	{"Desert", 100, 500.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 1, 1, 1}
-	//{"Mountain", 125, 500.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL}
+	// {"Mountain", 125, 875.0f, 0.075f, 0.0f, 0.125f, NULL, NULL, NULL, 1, 0, 3}
 };
 
-struct Dimension dimensions[] =
+struct Dimension dimensions[1] =
 {
 	{"Overworld", {0}, NULL, 2}
 };
@@ -62,13 +62,12 @@ void WorldStart(struct Shader *shader)
 	// biomes[2].blocks[0] = (struct BiomeBlock){3, 256, 0};
 	// biomes[2].lodes[0] = lodes[0];
 	// biomes[2].lodes[1] = lodes[1];
-	// biomes[2].sizeofBlocks = 1;
-	// biomes[2].sizeofStructures = 0;
-	// biomes[2].sizeofLodes = 2;
+	// biomes[2].lodes[1] = lodes[2];
 
 	dimensions[0].biomes = calloc(2, sizeof(struct Biome));
 	dimensions[0].biomes[0] = biomes[0];
 	dimensions[0].biomes[1] = biomes[1];
+	//dimensions[0].biomes[2] = biomes[2];
 
 	if(viewDistance == 0)
 		viewDistance = 4;
@@ -151,14 +150,49 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 
 void WorldDelete()
 {
-	VectorFreeivec2s(&activeChunks);
 	VectorFreeivec2s(&updateMesh);
 	VectorFreeivec2s(&modifyMesh);
-    for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
+	VectorFreeivec2s(&activeChunks);
+
+	int written = 0; // TODO(Aidan):Read and Write Chunk Data From file
+	FILE *f = fopen("res/saves/main.world", "w");
+	if (f == NULL)
+      printf("/nError to open the file!\n");
+
+	for(int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
 	{
-		for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
+		for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
 		{
-			DeleteChunk(dimensions[0].chunks[x][z]);
+			for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
+			{
+				if(dimensions[i].chunks[x][z] != 0 && dimensions[i].chunks[x][z]->renderable)
+				{
+					written = fwrite(&dimensions[i].chunks[x][z], sizeof(struct Chunk), 1, f);
+					if (written == 0)
+						printf("Error during writing to file!\n");
+				}
+			}
+		}
+	}
+	fclose(f);
+
+	FILE *inf;
+	struct Chunk inp;
+   	inf = fopen ("res/saves/main.world", "r");
+   	if (inf == NULL)
+    	printf("Error to open the file!\n");
+
+   	while(fread(&inp, sizeof(struct Chunk), 1, inf))
+      	printf ("roll_no = %d name = %d\n", inp.x, inp.z);
+   	fclose (inf);
+	for(int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
+	{
+		for(int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
+		{
+			for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
+			{
+				DeleteChunk(dimensions[i].chunks[x][z]);
+			}
 		}
 	}
 }
@@ -252,7 +286,7 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
         	strongestWeight = weight;
         	strongestBiomeIndex = i;
 		}
-    }
+	}
 
 	currentBiome = currentDimension.biomes[strongestBiomeIndex];
 
