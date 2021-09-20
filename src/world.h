@@ -14,6 +14,7 @@
 #define NUMBER_OF_CHUNKS_Z 100
 
 defineVector(ivec2s);
+defineVector(ivec3s);
 
 struct BiomeBlock
 {
@@ -81,7 +82,7 @@ vectorivec2s modifyMesh;
 
 vectorvectorvoxelmod modifications;
 
-void WorldStart(struct Shader *shader);
+void WorldStart(struct Shader *shader, ivec2s currentChunk);
 void WorldRender(struct Texture2D *texture, struct Shader *shader);
 void WorldDelete();
 void UpdateViewDistance(ivec2s currentChunk);

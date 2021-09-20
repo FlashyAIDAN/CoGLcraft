@@ -36,7 +36,46 @@ struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigne
     return player;
 }
 
-void PlayerUpdate(struct Player *player, float deltaTime) /*TODO: Add FixedUpdate function*/ /* TODO Fix Player falling when resizing window too long and at start of game */
+void DeletePlayer(struct Player *player)
+{
+    SavePlayer(player);
+}
+
+void LoadPlayer(struct Player *player)
+{
+    char *str = ReadFile("res/saves/main/player/player.data");
+	const char *s1 = "Position.x = ";
+	const char *s2 = "Position.y = ";
+	const char *s3 = "Position.z = ";
+	const char *s4 = "Yaw = ";
+	const char *s5 = "Pitch = ";
+    char word[100];
+
+    sscanf(strstr(str, s1) + strlen(s1), "%99s", word);
+	player->position.x = strtof(word, NULL);
+    sscanf(strstr(str, s2) + strlen(s2), "%99s", word);
+	player->position.y = strtof(word, NULL);
+    sscanf(strstr(str, s3) + strlen(s3), "%99s", word);
+	player->position.z = strtof(word, NULL);
+    sscanf(strstr(str, s4) + strlen(s4), "%99s", word);
+	player->camera.yaw = strtof(word, NULL);
+    sscanf(strstr(str, s5) + strlen(s5), "%99s", word);
+	player->camera.pitch = strtof(word, NULL);
+}
+
+void SavePlayer(struct Player *player)
+{
+    FILE *inf;
+	inf = fopen ("res/saves/main/player/player.data", "w");
+	if (inf == NULL)
+        printf("Cant open file!");
+    
+    fprintf(inf, "Position.x = %f\nPosition.y = %f\nPosition.z = %f\nYaw = %f\nPitch = %f", player->position.x, player->position.y, player->position.z, player->camera.yaw, player->camera.pitch);
+
+	fclose(inf);
+}
+
+void PlayerUpdate(struct Player *player, float deltaTime)
 {
     CalculateVelocity(player, deltaTime);
     if (player->jumpRequest)

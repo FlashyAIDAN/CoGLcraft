@@ -13,12 +13,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "io.h"
 
 #include "utils/file.h"
 
 #include <stddef.h>
 #include <ctype.h>
 #include <string.h>
+
 
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void MouseCallback(GLFWwindow *window, double xPos, double yPos);
@@ -131,6 +133,8 @@ int main(int argc, const char *argv[])
 	uiShader = MakeShader("res/shaders/ui_vertex.glsl", "res/shaders/ui_fragment.glsl", NULL);
 	player = MakePlayer(playerShader, screenWidth, screenHeight);
 	player.position = (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z };
+	if(access( "res/saves/main/player/player.data", 0 ) != -1)
+		LoadPlayer(&player);
 
 	// Read Config File
 	char *str = ReadFile("res/settings.config");
@@ -150,13 +154,13 @@ int main(int argc, const char *argv[])
     //printf("Found \"%s\" after \"%s\"\n\n", word, seedString);
 	SimplexInit((int)strtol(word, (char **)NULL, 10));
 
-	WorldStart(&player.shader);
+	currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
+	oldChunk = currentChunk;
+	WorldStart(&player.shader, currentChunk);
 
 	SetShaderInteger(&uiShader, "sprite", 0, true);
 	SetShaderMatrix4(&uiShader, "projection", glms_ortho(-((float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenWidth / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f, -((float)(screenHeight / igcd(screenWidth, screenHeight)) / 2.0f / 10.0f), (float)(screenHeight / igcd(screenWidth, screenHeight) / 2.0f / 10.0f), -1.0f, 1.0f), false);
 
-	currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
-	oldChunk = currentChunk;
 
 	// Outline Cube Test
 	unsigned int oCubeVAO, oCubeVBO, oCubeEBO = 0;
@@ -232,6 +236,7 @@ int main(int argc, const char *argv[])
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	lastFrame = glfwGetTime();
 	while(!glfwWindowShouldClose(window))
 	{
 		currentFrame = glfwGetTime();
@@ -322,6 +327,7 @@ int main(int argc, const char *argv[])
 	glDeleteBuffers(1, &uiVBO);
 	glDeleteBuffers(1, &uiEBO);
 
+	DeletePlayer(&player);
 	SimplexFree();
 	WorldDelete();
 
@@ -364,6 +370,9 @@ void ProcessInput()
 			fullscreen = true;
 		}
 	}
+
+	if(GetKeyDown(GLFW_KEY_F4))
+		player.position = (vec3s){ player.position.x, CHUNK_SIZE_Y, player.position.z };
 
 	if (GetKey(GLFW_KEY_W))
         player.vertical = 1;

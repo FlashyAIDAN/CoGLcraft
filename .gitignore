@@ -55,3 +55,5 @@ dkms.conf
 includes
 libs
 build
+*.chunk
+player.data

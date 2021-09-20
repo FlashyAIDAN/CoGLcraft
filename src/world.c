@@ -1,6 +1,7 @@
 #include "world.h"
 
 defineFuntionsVector(ivec2s, ((ivec2s){0.0f, 0.0f}));
+defineFuntionsVector(ivec3s, ((ivec3s){0.0f, 0.0f, 0.0f}));
 defineFuntionsVector(vectorvoxelmod, ((vectorvoxelmod){0}));
 
 struct Lode lodes[3] =
@@ -32,7 +33,7 @@ int wnormals[6][3] =
     { 0, -1,  0}
 };
 
-void WorldStart(struct Shader *shader)
+void WorldStart(struct Shader *shader, ivec2s currentChunk)
 {
 	// BIOME 1
 	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
@@ -81,14 +82,62 @@ void WorldStart(struct Shader *shader)
 
 	VectorInitvectorvoxelmod(&modifications);
 
-	for (int x = (NUMBER_OF_CHUNKS_X / 2) - viewDistance; x < (NUMBER_OF_CHUNKS_X / 2) + viewDistance; x++)
+	VECTOR_INIT(ivec3s, startMesh);
+	for(unsigned int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
 	{
-		for (int z = (NUMBER_OF_CHUNKS_Z / 2) - viewDistance; z < (NUMBER_OF_CHUNKS_Z / 2) + viewDistance; z++)
+		for(unsigned int x = 0; x < NUMBER_OF_CHUNKS_X; x++)
 		{
-			dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
-			MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
-			VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
-			VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+			for(unsigned int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
+			{
+				FILE *inf;
+				char s[10000]; // This is not perminent an will eventually run out of char space, once x gets too big
+				sprintf(s, "res/saves/main/chunks/%s/x%dz%d.chunk", dimensions[i].name, x, z); // Folders need to be created automatically
+				inf = fopen (s, "r");
+				if (inf == NULL)
+					goto skip;
+				dimensions[i].chunks[x][z] = malloc(sizeof(struct Chunk));
+				MakeChunk(dimensions[i].chunks[x][z], x, 0, z);
+				for(unsigned int cx = 0; cx < CHUNK_SIZE_X; cx++)
+				{
+					for(unsigned int cy = 0; cy < CHUNK_SIZE_Y; cy++)
+					{
+						for(unsigned int cz = 0; cz < CHUNK_SIZE_Z; cz++)
+						{
+							fread(&dimensions[i].chunks[x][z]->voxels[cx][cy][cz], sizeof(uint8_t), 1, inf);
+						}
+					}
+				}
+				dimensions[i].chunks[x][z]->populated = true;
+				
+				VectorPushBackivec3s(&startMesh, (ivec3s){i, x, z});
+
+				if((x >= currentChunk.x - viewDistance && x <= currentChunk.x + viewDistance) && (z >= currentChunk.y - viewDistance && z <= currentChunk.y + viewDistance))
+					VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+				
+				fclose(inf);
+				skip:;
+			}
+		}
+	}
+
+	for(int i = 0; i < VectorTotalivec3s(&startMesh); i++)
+	{
+		CreateVertices(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
+		CreateChunkBufferData(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
+	}
+	VectorFreeivec3s(&startMesh);
+
+	for (unsigned int x = currentChunk.x - viewDistance; x < currentChunk.x + viewDistance; x++)
+	{
+		for (unsigned int z = currentChunk.y - viewDistance; z < currentChunk.y + viewDistance; z++)
+		{
+			if(dimensions[0].chunks[x][z] == 0 && !dimensions[0].chunks[x][z]->renderable)
+			{
+				dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
+				MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
+				VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
+				VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+			}
 		}
 	}
 }
@@ -165,7 +214,7 @@ void WorldDelete()
 				if(dimensions[i].chunks[x][z] != 0 && dimensions[i].chunks[x][z]->renderable && dimensions[i].chunks[x][z]->populated)
 				{
 					char s[10000]; // This is not perminent an will eventually run out of char space, once x gets too big
-					sprintf(s, "res/saves/main/chunks/x%dz%d.chunk", x, z);
+					sprintf(s, "res/saves/main/chunks/%s/x%dz%d.chunk", dimensions[i].name, x, z); // Folders need to be created automatically
 					FILE *f = fopen(s, "w");
 					if (f == NULL)
       					printf("/nError to open the file!\n");
@@ -187,18 +236,6 @@ void WorldDelete()
 			}
 		}
 	}
-
-	// TODO(Aidan): Open Chunk Files
-
-	// FILE *inf;
-	// uint8_t inp;
-   	// inf = fopen ("res/saves/main.world", "r");
-   	// if (inf == NULL)
-    // printf("Error to open the file!\n");
-
-   	// while(fread(&inp, sizeof(uint8_t), 1, inf))
-   	// 	printf ("voxel: %d\n", inp);
-	// fclose (inf);
 	
 	for(int i = 0; i < (sizeof(dimensions) / sizeof(dimensions[0])); i++)
 	{

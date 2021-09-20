@@ -36,6 +36,9 @@ struct Player
 	float height; // 1.8f;
 };
 	struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigned int screenHeight);
+	void DeletePlayer(struct Player *player);
+	void LoadPlayer(struct Player *player);
+	void SavePlayer(struct Player *player);
 	void PlayerUpdate(struct Player *player, float deltaTime);
 	void PlayerJump(struct Player *player);
 	void CalculateVelocity(struct Player *player, float deltaTime);
