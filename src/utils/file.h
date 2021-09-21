@@ -1,4 +1,4 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *ReadFile(const char *filename);
+char *ReadFileToString(const char *filename);

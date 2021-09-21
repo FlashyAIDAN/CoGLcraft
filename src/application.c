@@ -137,7 +137,7 @@ int main(int argc, const char *argv[])
 		LoadPlayer(&player);
 
 	// Read Config File
-	char *str = ReadFile("res/settings.config");
+	char *str = ReadFileToString("res/settings.config");
 	const char *sensString = "Sensitivity = ";
 	const char *vdString = "View Distance = ";
 	const char *seedString = "Seed = ";

@@ -43,7 +43,7 @@ void DeletePlayer(struct Player *player)
 
 void LoadPlayer(struct Player *player)
 {
-    char *str = ReadFile("res/saves/main/player/player.data");
+    char *str = ReadFileToString("res/saves/main/player/player.data");
 	const char *s1 = "Position.x = ";
 	const char *s2 = "Position.y = ";
 	const char *s3 = "Position.z = ";

@@ -1,7 +1,7 @@
 #include "file.h"
 
 // Mainly from https://stackoverflow.com/questions/174531/how-to-read-the-content-of-a-file-to-a-string-in-c
-char *ReadFile(const char *filename)
+char *ReadFileToString(const char *filename)
 {
     char * buffer = 0;
     long length;

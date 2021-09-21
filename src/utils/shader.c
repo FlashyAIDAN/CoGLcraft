@@ -33,9 +33,9 @@ struct Shader MakeShader(const char *vertexSource, const char *fragmentSource, c
 {
     struct Shader shader;
 
-    vertexSource = ReadFile(vertexSource);
-    fragmentSource = ReadFile(fragmentSource);
-    geometrySource = ReadFile(geometrySource);
+    vertexSource = ReadFileToString(vertexSource);
+    fragmentSource = ReadFileToString(fragmentSource);
+    geometrySource = ReadFileToString(geometrySource);
 
     unsigned int sVertex, sFragment, gShader;
 
