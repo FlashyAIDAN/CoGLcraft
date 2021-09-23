@@ -37,7 +37,7 @@ struct Chunk
 
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
 
-    bool renderable, populated, modified;
+    bool renderable, populated, modified, inVector;
 
     vectorvoxelmod modifications;
 };

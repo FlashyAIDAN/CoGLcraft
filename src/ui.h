@@ -11,7 +11,7 @@
 struct UIrenderer
 {
     struct Shader shader;
-    unsigned int *VAO;
+    unsigned int VAO;
 };
 
 struct UIrenderer MakeUIrenderer(struct Shader shader, unsigned int width, unsigned int height);

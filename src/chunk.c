@@ -78,6 +78,7 @@ void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 	chunk->renderable = false;
 	chunk->populated = false;
 	chunk->modified = false;
+	chunk->inVector = false;
 
 	VectorInitvoxelmod(&chunk->modifications);
 }
@@ -126,7 +127,6 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 					default:
 						break;
 					}
-
 						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + voxelModMeshFace.x + x);
 						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y + y);
 						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z + z);
@@ -222,29 +222,27 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 				case 3:
 					voxelModMeshFace = voxels[ID].voxelMeshMod.rightFace;
 					break;
-				case 4:
-					voxelModMeshFace = voxels[ID].voxelMeshMod.topFace;
-					break;
-				case 5:
-					voxelModMeshFace = voxels[ID].voxelMeshMod.bottomFace;
-					break;
 				
 				default:
 					break;
 				}
+				vec3s v1 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][0]][0] + voxelModMeshFace.x, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
+				vec3s v2 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][1]][0] + voxelModMeshFace.x, verticeData[indiceData[i][1]][1] + voxelModMeshFace.y, verticeData[indiceData[i][1]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
+				vec3s v3 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][2]][0] + voxelModMeshFace.x, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
+				vec3s v4 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][3]][0] + voxelModMeshFace.x, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
 
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + voxelModMeshFace.x + x);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z + z);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][0] + voxelModMeshFace.x + x);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][1] + voxelModMeshFace.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][2] + voxelModMeshFace.z + z);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][0] + voxelModMeshFace.x + x);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z + z);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][0] + voxelModMeshFace.x + x);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z + z);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.x + x - 0.25f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.y + y);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.z + z + 0.5f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.x + x - 0.25f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.y + y);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.z + z + 0.5f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.x + x - 0.25f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.y + y);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.z + z + 0.5f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.x + x - 0.25f);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.y + y);
+				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.z + z + 0.5f);
 
 				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
 				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
@@ -273,12 +271,6 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 					break;
 				case 3:
 					textureID = voxels[ID].rightFace;
-					break;
-				case 4:
-					textureID = voxels[ID].topFace;
-					break;
-				case 5:
-					textureID = voxels[ID].bottomFace;
 					break;
 				
 				default:

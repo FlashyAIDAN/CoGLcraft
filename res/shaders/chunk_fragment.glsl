@@ -9,10 +9,11 @@ in vec3 viewpos;
 uniform sampler2D texture1;
 uniform float fogNear;
 uniform float fogFar;
+uniform float globalLightLevel;
 
 void main()
 {
-	vec4 color = vec4(ourColor, 1.0) * texture(texture1, texCoord);
+	vec4 color = mix(vec4(ourColor, 1.0), vec4(0.05, 0.05, 0.05, 1.0), globalLightLevel) * texture(texture1, texCoord);
 
 	if(color.a < 0.1)
 		discard;

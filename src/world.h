@@ -79,6 +79,7 @@ int viewDistance;
 vectorivec2s activeChunks;
 vectorivec2s updateMesh;
 vectorivec2s modifyMesh;
+vectorivec2s makeMesh;
 
 vectorvectorvoxelmod modifications;
 

@@ -14,3 +14,22 @@ int igcd(int x, int y)
     }
     return x;
 }
+
+float lerp(float a, float b, float f)
+{
+    return a + f * (b - a);
+}
+
+bool CheckCollision2D(float positionX, float positionY, float scaleX, float scaleY, float targetPositionX, float targetPositionY, float targetScaleX, float targetScaleY)
+{
+    if 
+    (
+        positionX - (scaleX / 2.0f) <= targetPositionX + (targetScaleX / 2.0f) &&
+        positionX + (scaleX / 2.0f) >= targetPositionX - (targetScaleX / 2.0f) &&
+        positionY - (scaleY / 2.0f) <= targetPositionY + (targetScaleY / 2.0f) &&
+        positionY + (scaleY / 2.0f) >= targetPositionY - (targetScaleY / 2.0f)
+    )
+        return true;
+    else
+        return false;
+}

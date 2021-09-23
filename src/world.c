@@ -79,6 +79,7 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 	VectorInitivec2s(&activeChunks);
 	VectorInitivec2s(&updateMesh);
 	VectorInitivec2s(&modifyMesh);
+	VectorInitivec2s(&makeMesh);
 
 	VectorInitvectorvoxelmod(&modifications);
 
@@ -108,11 +109,14 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 					}
 				}
 				dimensions[i].chunks[x][z]->populated = true;
-				
-				VectorPushBackivec3s(&startMesh, (ivec3s){i, x, z});
-
-				if((x >= currentChunk.x - viewDistance && x <= currentChunk.x + viewDistance) && (z >= currentChunk.y - viewDistance && z <= currentChunk.y + viewDistance))
-					VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+				if(IsChunkInWorld(x, z))
+				{
+					if((x >= currentChunk.x - viewDistance && x <= currentChunk.x + viewDistance) && (z >= currentChunk.y - viewDistance && z <= currentChunk.y + viewDistance))
+					{
+						VectorPushBackivec3s(&startMesh, (ivec3s){i, x, z});
+						VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+					}
+				}
 				
 				fclose(inf);
 				skip:;
@@ -131,12 +135,15 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 	{
 		for (unsigned int z = currentChunk.y - viewDistance; z < currentChunk.y + viewDistance; z++)
 		{
-			if(dimensions[0].chunks[x][z] == 0 && !dimensions[0].chunks[x][z]->renderable)
+			if(IsChunkInWorld(x, z))
 			{
-				dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
-				MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
-				VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
-				VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+				if(dimensions[0].chunks[x][z] == 0 || !dimensions[0].chunks[x][z]->renderable)
+				{
+					dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
+					MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
+					VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
+					VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
+				}
 			}
 		}
 	}
@@ -147,6 +154,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	
 	if(VectorTotalivec2s(&updateMesh) > 0)
 	{
+		dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]->inVector = false;
 		CreateVoxels(dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		// int count = 0;
 		while (VectorTotalvectorvoxelmod(&modifications) > 0)
@@ -182,6 +190,13 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	 	CreateChunkBufferData(dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y]);
 		VectorDeleteivec2s(&updateMesh, 0);
 	}
+	if(VectorTotalivec2s(&makeMesh) > 0)
+	{
+		dimensions[0].chunks[VectorGetivec2s(&makeMesh, 0).x][VectorGetivec2s(&makeMesh, 0).y]->inVector = false;
+		CreateVertices(dimensions[0].chunks[VectorGetivec2s(&makeMesh, 0).x][VectorGetivec2s(&makeMesh, 0).y]);
+	 	CreateChunkBufferData(dimensions[0].chunks[VectorGetivec2s(&makeMesh, 0).x][VectorGetivec2s(&makeMesh, 0).y]);
+		VectorDeleteivec2s(&makeMesh, 0);
+	}
 	while(VectorTotalivec2s(&modifyMesh) > 0)
 	{
 		ClearChunk(dimensions[0].chunks[VectorGetivec2s(&modifyMesh, 0).x][VectorGetivec2s(&modifyMesh, 0).y]);
@@ -201,7 +216,9 @@ void WorldDelete()
 {
 	VectorFreeivec2s(&updateMesh);
 	VectorFreeivec2s(&modifyMesh);
+	VectorFreeivec2s(&makeMesh);
 	VectorFreeivec2s(&activeChunks);
+	VectorFreevectorvoxelmod(&modifications);
 
 	int written = 0; // TODO(Aidan):Read and Write Chunk Data From file
 
@@ -260,11 +277,17 @@ void UpdateViewDistance(ivec2s currentChunk) // TODO(Aidan): Maybe find a way of
 		{
 			if (IsChunkInWorld(x, z))
 			{
-				if (dimensions[0].chunks[x][z] == 0)
+				if (dimensions[0].chunks[x][z] == 0 && !dimensions[0].chunks[x][z]->inVector)
 				{
 					dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
 					MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
+					dimensions[0].chunks[x][z]->inVector = true;
 					VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
+				}
+				else if(dimensions[0].chunks[x][z]->populated && !dimensions[0].chunks[x][z]->renderable && !dimensions[0].chunks[x][z]->inVector)
+				{
+					dimensions[0].chunks[x][z]->inVector = true;
+					VectorPushBackivec2s(&makeMesh, (ivec2s){x, z});
 				}
 				VectorPushBackivec2s(&activeChunks, (ivec2s){x, z});
 			}
@@ -386,7 +409,7 @@ ivec2s GetCurrentChunkCoordinates(float x, float z)
 	int _x = (int)floor(x / (float)CHUNK_SIZE_X);
 	int _z = (int)floor(z / (float)CHUNK_SIZE_Z);
 
-		return (ivec2s){_x, _z};
+	return (ivec2s){_x, _z};
 }
 
 ivec3s GetBlockLookedAt(vec3s position, vec3s front, float reach, float increment, bool normalized)

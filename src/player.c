@@ -23,11 +23,12 @@ struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigne
 	player.sensitivity = 0.3f;
 	player.isGrounded = false;
 	player.isSprinting = false;
+	player.inInventory = false;
 
 	player.checkIncrement = 0.1f;
 	player.reach = 8.0f;
 
-	player.width = 0.15f;
+	player.width = 0.3f;
 	player.height = 1.8f;
 
     SetShaderInteger(&player.shader, "texture1", 0, true);
@@ -119,6 +120,9 @@ void CalculateVelocity(struct Player *player, float deltaTime)
         player->velocity.y = CheckDownSpeed(player, player->velocity.y);
     if (player->velocity.y > 0)
         player->velocity.y = CheckUpSpeed(player, player->velocity.y);
+
+    player->horizontal = 0;
+    player->vertical = 0;
 }
 
 float CheckDownSpeed(struct Player *player, float downSpeed)
