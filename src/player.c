@@ -1,5 +1,6 @@
 #include "player.h"
 #include "world.h"
+#include "utils/emath.h"
 
 struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigned int screenHeight)
 {
@@ -7,6 +8,10 @@ struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigne
 
     player.horizontal = 0.0f;
 	player.vertical = 0.0f;
+    player.friction = 10.0f;
+    player.airDrag = 4.0f;
+    player.acceleration = 1.0f;
+    player.maxFallSpeed = 30.0f;
 	player.mouseHorizontal = 0.0f;
 	player.mouseVertical = 0.0f;
 	player.velocity = (vec3s){0.0f, 0.0f, 0.0f};
@@ -18,7 +23,7 @@ struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigne
 	player.camera = MakeCamera(&player.shader, (vec3s){0.0f, 0.0f, 0.0f}, -90.0f, 0.0f, screenWidth, screenHeight);
 
 	player.gravity = -9.8f;
-	player.speed = 3.0f;
+	player.speed = 5.0f;
 	player.jumpForce = 5.0f;
 	player.sensitivity = 0.3f;
 	player.isGrounded = false;
@@ -99,14 +104,19 @@ void PlayerJump(struct Player *player)
 void CalculateVelocity(struct Player *player, float deltaTime)
 {
     // Affect vertical momentum with gravity
-    if (player->verticalMomentum > player->gravity) // TODO: players vertical momentum is way bigger if they havent jumped yet
+    if (player->verticalMomentum <= player->maxFallSpeed && !player->isGrounded)
         player->verticalMomentum += deltaTime * player->gravity;
+    else if(CheckDownSpeed(player, -0.1f) == 0.0f)
+        player->verticalMomentum = 0.0f;
+    
+    if(player->verticalMomentum < -player->maxFallSpeed)
+        player->verticalMomentum = -player->maxFallSpeed;
 
     // If we're sprinting, use the sprint multiplier.
     if (player->isSprinting)
-        player->velocity = glms_vec3_mul(glms_vec3_add(glms_vec3_mul(player->camera.forward, (vec3s){player->vertical, player->vertical, player->vertical}), glms_vec3_mul(player->camera.right, (vec3s){player->horizontal, player->horizontal, player->horizontal})), (vec3s){deltaTime * player->speed * 2.0f, deltaTime * player->speed * 2.0f, deltaTime * player->speed * 2.0f});
+        player->velocity = glms_vec3_mul(glms_vec3_add(glms_vec3_mul(player->camera.forward, (vec3s){player->vertical, player->vertical, player->vertical}), glms_vec3_mul(player->camera.right, (vec3s){player->horizontal, player->horizontal, player->horizontal})), (vec3s){deltaTime * 2.0f, deltaTime * 2.0f, deltaTime * 2.0f});
     else
-        player->velocity = glms_vec3_mul(glms_vec3_add(glms_vec3_mul(player->camera.forward, (vec3s){player->vertical, player->vertical, player->vertical}), glms_vec3_mul(player->camera.right, (vec3s){player->horizontal, player->horizontal, player->horizontal})), (vec3s){deltaTime * player->speed, deltaTime * player->speed, deltaTime * player->speed});
+        player->velocity = glms_vec3_mul(glms_vec3_add(glms_vec3_mul(player->camera.forward, (vec3s){player->vertical, player->vertical, player->vertical}), glms_vec3_mul(player->camera.right, (vec3s){player->horizontal, player->horizontal, player->horizontal})), (vec3s){deltaTime, deltaTime, deltaTime});
 
     // Apply vertical momentum
     player->velocity = glms_vec3_add(player->velocity, glms_vec3_mul(player->camera.worldUp, (vec3s){player->verticalMomentum * deltaTime, player->verticalMomentum * deltaTime, player->verticalMomentum * deltaTime}));
@@ -121,8 +131,16 @@ void CalculateVelocity(struct Player *player, float deltaTime)
     if (player->velocity.y > 0)
         player->velocity.y = CheckUpSpeed(player, player->velocity.y);
 
-    player->horizontal = 0;
-    player->vertical = 0;
+    if(player->isGrounded)
+    {
+        player->horizontal = lerp(player->horizontal, 0.0f, player->friction * deltaTime);
+        player->vertical = lerp(player->vertical, 0.0f, player->friction * deltaTime);
+    }
+    else
+    {
+        player->horizontal = lerp(player->horizontal, 0.0f, player->airDrag * deltaTime);
+        player->vertical = lerp(player->vertical, 0.0f, player->airDrag * deltaTime);
+    }
 }
 
 float CheckDownSpeed(struct Player *player, float downSpeed)

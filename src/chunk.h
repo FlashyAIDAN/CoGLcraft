@@ -28,18 +28,22 @@ defineVector(int);
 
 struct Chunk
 {
-    vectorfloat vertices, uvs, colors;
-	vectorint indices;
-
     vec3s position;
 
-    unsigned int x, z, VBO, VAO, EBO, CBO, UVBO, indiceIndex; // x, z, VBO, EBO, CBO, UVBO, indicieIndex are unnecessary
+    unsigned int VAO, VBO, EBO, CBO, UVBO, indiceIndex;
 
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
+    uint8_t lights[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
 
     bool renderable, populated, modified, inVector;
 
     vectorvoxelmod modifications;
+};
+
+struct MeshData
+{
+    vectorfloat vertices, uvs, colors;
+	vectorint indices;
 };
 
 struct VoxelMeshMod
@@ -51,25 +55,30 @@ struct Voxel
 {
     const char *name;
 
-    uint8_t frontFace, backFace, leftFace, rightFace, topFace, bottomFace;
+    float health, transparency;
 
-    bool invisible, renderNeighborFaces, forceRenderFaces, cross, collider;
+    uint8_t frontFace, backFace, leftFace, rightFace, topFace, bottomFace, lightLevel;
+
+    bool invisible, renderNeighborFaces, forceRenderFaces, cross, collider, renderNeighborsFrontST, renderNeighborsBackST, renderNeighborsLeftST, renderNeighborsRightST, renderNeighborsTopST, renderNeighborsBottomST;
 
     struct VoxelMeshMod voxelMeshMod;
 };
 
 struct Voxel voxels[19];
 
+float chunkGlobalLightLevel;
+
 uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z);
 
 void MakeChunk(struct Chunk *chunk, int x, int y, int z);
-void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID);
-void CreateChunkBufferData(struct Chunk *chunk);
+void CreateVoxel(struct Chunk *chunk, struct MeshData *meshData, int x, int y, int z, uint8_t ID);
+void CreateChunkBufferData(struct Chunk *chunk, struct MeshData *meshData);
 void DeleteChunk(struct Chunk *chunk);
 void ClearChunk(struct Chunk *chunk);
 void RenderChunk(struct Chunk *chunk, struct Shader *shader);
 void CreateVoxels(struct Chunk *chunk);
 void CreateVertices(struct Chunk *chunk);
+void CalculateLight(struct Chunk *chunk);
 
 bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z);
 

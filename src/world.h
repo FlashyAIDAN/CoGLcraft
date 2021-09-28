@@ -89,16 +89,16 @@ void WorldDelete();
 void UpdateViewDistance(ivec2s currentChunk);
 void EditVoxel(struct Chunk *chunk, ivec3s position, uint8_t ID);
 
-struct Chunk *GetChunk(int x, int z);
+struct Chunk *GetChunk(ivec2s position);
 
 uint8_t WorldGetVoxel(int x, int y, int z);
 uint8_t GenerateVoxel(vec3s position, int x, int y, int z);
 
-ivec2s GetCurrentChunkCoordinates(float x, float z);
+ivec2s GetCurrentChunkCoordinates(vec2s position);
 
 ivec3s GetBlockLookedAt(vec3s position, vec3s front, float reach, float increment, bool normalized);
 
 bool IsVoxelInWorld(int x, int y, int z);
-bool IsChunkInWorld(int x, int z);
+bool IsChunkInWorld(ivec2s position);
 
 #endif

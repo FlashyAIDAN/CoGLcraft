@@ -12,6 +12,10 @@ struct Player
 {
     float horizontal;
 	float vertical;
+	float friction;
+	float airDrag;
+	float acceleration;
+	float maxFallSpeed;
 	float mouseHorizontal;
 	float mouseVertical;
 	vec3s velocity;

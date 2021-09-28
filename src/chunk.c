@@ -1,31 +1,34 @@
 #include "chunk.h"
 #include "world.h"
 
+#define LIGHT_FALLOFF 1
+#define LIGHT_RAY_FALLOFF 0.08f
+
 defineFuntionsVector(float, 0);
 defineFuntionsVector(int, 0);
 defineFuntionsVector(voxelmod, ((struct VoxelMod){(ivec3s){0, 0, 0}, 0}))
 
 struct Voxel voxels[19] =
 {
-	{"Air", -1, -1, -1, -1, -1, -1, true, true, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Dirt", 242, 242, 242, 242, 242, 242, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Grass", 243, 243, 243, 243, 240, 242, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Stone", 241, 241, 241, 241, 241, 241, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Bedrock", 225, 225, 225, 225, 225, 225, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Log", 228, 228, 228, 228, 229, 229, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Leaf", 196, 196, 196, 196, 196, 196, false, true, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Glass", 193, 193, 193, 193, 193, 193, false, true, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Planks", 244, 244, 244, 244, 244, 244, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Bricks", 247, 247, 247, 247, 247, 247, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Cobblestone", 224, 224, 224, 224, 224, 224, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Gold Ore", 208, 208, 208, 208, 208, 208, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Iron Ore", 209, 209, 209, 209, 209, 209, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Coal Ore", 210, 210, 210, 210, 210, 210, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Diamond Ore", 194, 194, 194, 194, 194, 194, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Redstone Ore", 195, 195, 195, 195, 195, 195, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Sand", 226, 226, 226, 226, 226, 226, false, false, false, false, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Cactus", 182, 182, 182, 182, 181, 183, false, true, true, false, true, {{0.0f, 0.0f, -0.05f}, {0.0f, 0.0f, 0.05f}, {0.05f, 0.0f, 0.0f}, {-0.05f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Rose", 252, 252, 252, 252, 252, 252, false, true, true, true, false, {{0.0f, 0.0f, -0.5f}, {0.0f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f}, {-0.5f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}}
+	{"Air", 0.0f, 1.0f, -1, -1, -1, -1, -1, -1, 0, true, true, false, false, false, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Dirt", 5.0f, 0.0f, 242, 242, 242, 242, 242, 242, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Grass", 6.0f, 0.0f, 243, 243, 243, 243, 240, 242, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Stone", 10.0f, 0.0f, 241, 241, 241, 241, 241, 241, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Bedrock", 100.0f, 0.0f, 225, 225, 225, 225, 225, 225, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Log", 10.0f, 0.0f, 228, 228, 228, 228, 229, 229, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Leaf", 1.0f, 0.75f, 196, 196, 196, 196, 196, 196, 0, false, true, false, false, true, true, true, true, true, true, true, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Glass", 1.0f, 1.0f, 193, 193, 193, 193, 193, 193, 0, false, true, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Planks", 10.0f, 0.0f, 244, 244, 244, 244, 244, 244, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Bricks", 25.0f, 0.0f, 247, 247, 247, 247, 247, 247, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Cobblestone", 15.0f, 0.0f, 224, 224, 224, 224, 224, 224, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Gold Ore", 15.0f, 0.0f, 208, 208, 208, 208, 208, 208, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Iron Ore", 20.0f, 0.0f, 209, 209, 209, 209, 209, 209, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Coal Ore", 20.0f, 0.0f, 210, 210, 210, 210, 210, 210, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Diamond Ore", 30.0f, 0.0f, 194, 194, 194, 194, 194, 194, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Redstone Ore", 20.0f, 0.0f, 195, 195, 195, 195, 195, 195, 15, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Sand", 5.0f, 0.0f, 226, 226, 226, 226, 226, 226, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Cactus", 5.0f, 0.0f, 182, 182, 182, 182, 181, 183, 0, false, true, true, false, true, true, true, true, true, false, false, {{0.0f, 0.0f, -0.05f}, {0.0f, 0.0f, 0.05f}, {0.05f, 0.0f, 0.0f}, {-0.05f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Rose", 1.0f, 0.0f, 252, 252, 252, 252, 252, 252, 0, false, true, true, true, false, true, true, true, true, true, true, {{0.0f, 0.0f, -0.5f}, {0.0f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f}, {-0.5f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}}
 };
 
 float verticeData[8][3] = 
@@ -63,15 +66,13 @@ int normals[6][3] =
 void MakeChunk(struct Chunk *chunk, int x, int y, int z)
 {
 	memset(chunk, 0, sizeof(struct Chunk));
-	chunk->x = x;
-	chunk->z = z;
 	
-    chunk->VBO = 0;
     chunk->VAO = 0;
+    chunk->VBO = 0;
     chunk->EBO = 0;
     chunk->CBO = 0;
     chunk->UVBO = 0;
-    chunk->indiceIndex = 0;
+	chunk->indiceIndex = 0;
 
     chunk->position = (vec3s){(float)x * CHUNK_SIZE_X, (float)y * CHUNK_SIZE_Y, (float)z * CHUNK_SIZE_Z};
 
@@ -91,7 +92,7 @@ uint8_t GetVoxel(struct Chunk *chunk, int x, int y, int z)
 		return chunk->voxels[x][y][z];
 }
 
-void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
+void CreateVoxel(struct Chunk *chunk, struct MeshData *meshData, int x, int y, int z, uint8_t ID)
 {
 	if(!voxels[ID].invisible)
 	{
@@ -99,7 +100,8 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 		{
 			for(int i = 0; i < 6; i++)
 			{
-				if(voxels[ID].forceRenderFaces || voxels[GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2])].renderNeighborFaces)
+				uint8_t neighbor = GetVoxel(chunk, x + normals[i][0], y + normals[i][1], z + normals[i][2]);
+				if((ID != neighbor && voxels[ID].forceRenderFaces) || (ID != neighbor && voxels[neighbor].renderNeighborFaces) || (i == 0 && ID == neighbor && voxels[ID].renderNeighborsFrontST) || (i == 1 && ID == neighbor && voxels[ID].renderNeighborsBackST) || (i == 2 && ID == neighbor && voxels[ID].renderNeighborsLeftST) | (i == 3 && ID == neighbor && voxels[ID].renderNeighborsRightST) || (i == 4 && ID == neighbor && voxels[ID].renderNeighborsTopST) || (i == 5 && ID == neighbor && voxels[ID].renderNeighborsBottomST))
 				{
 					vec3s voxelModMeshFace;
 
@@ -127,79 +129,80 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 					default:
 						break;
 					}
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][0] + voxelModMeshFace.x + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][0] + voxelModMeshFace.x + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][1] + voxelModMeshFace.y + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][1]][2] + voxelModMeshFace.z + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][0] + voxelModMeshFace.x + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z + z);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][0] + voxelModMeshFace.x + x);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y + y);
-						chunk->vertices.pfVectorAddfloat(&chunk->vertices, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z + z);
 
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-						chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][0]][0] + voxelModMeshFace.x + x);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][0]][1] + voxelModMeshFace.y + y);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][0]][2] + voxelModMeshFace.z + z);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][1]][0] + voxelModMeshFace.x + x);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][1]][1] + voxelModMeshFace.y + y);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][1]][2] + voxelModMeshFace.z + z);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][2]][0] + voxelModMeshFace.x + x);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y + y);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z + z);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][3]][0] + voxelModMeshFace.x + x);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y + y);
+					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z + z);
 
-						uint8_t textureID = 0;
-						switch (i)
-						{
-						case 0:
-							textureID = voxels[ID].frontFace;
-							break;
-						case 1:
-							textureID = voxels[ID].backFace;
-							break;
-						case 2:
-							textureID = voxels[ID].leftFace;
-							break;
-						case 3:
-							textureID = voxels[ID].rightFace;
-							break;
-						case 4:
-							textureID = voxels[ID].topFace;
-							break;
-						case 5:
-							textureID = voxels[ID].bottomFace;
-							break;
-						
-						default:
-							break;
-						}
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
 
-						float uvy = (float)(textureID / TEXTURE_ATLAS_SIZE_IN_BLOCKS);
-						float uvx = (float)(textureID - (uvy * TEXTURE_ATLAS_SIZE_IN_BLOCKS));
-						float normalized = 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
-						uvx *= normalized;
-						uvy *= normalized;
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-						chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
+					uint8_t textureID = 0;
+					switch (i)
+					{
+					case 0:
+						textureID = voxels[ID].frontFace;
+						break;
+					case 1:
+						textureID = voxels[ID].backFace;
+						break;
+					case 2:
+						textureID = voxels[ID].leftFace;
+						break;
+					case 3:
+						textureID = voxels[ID].rightFace;
+						break;
+					case 4:
+						textureID = voxels[ID].topFace;
+						break;
+					case 5:
+						textureID = voxels[ID].bottomFace;
+						break;
+					
+					default:
+						break;
+					}
 
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-						chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 3);
-						chunk->indiceIndex += 4;
+					float uvy = (float)(textureID / TEXTURE_ATLAS_SIZE_IN_BLOCKS);
+					float uvx = (float)(textureID - (uvy * TEXTURE_ATLAS_SIZE_IN_BLOCKS));
+					float normalized = 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
+					uvx *= normalized;
+					uvy *= normalized;
+					VectorPushBackfloat(&meshData->uvs, uvx + UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvy + UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvx + UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvy + normalized - UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvx + normalized - UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvy + UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvx + normalized - UV_OFFSET);
+					VectorPushBackfloat(&meshData->uvs, uvy + normalized - UV_OFFSET);
+
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex);
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex + 1);
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex + 2);
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex + 2);
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex + 1);
+					VectorPushBackint(&meshData->indices, chunk->indiceIndex + 3);
+					chunk->indiceIndex += 4;
 				}
 			}
 		}
@@ -231,31 +234,31 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 				vec3s v3 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][2]][0] + voxelModMeshFace.x, verticeData[indiceData[i][2]][1] + voxelModMeshFace.y, verticeData[indiceData[i][2]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
 				vec3s v4 = glms_vec3_rotate((vec3s){verticeData[indiceData[i][3]][0] + voxelModMeshFace.x, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z}, glm_rad(45.0f), (vec3s){0.0f, 1.0f, 0.0f});
 
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.x + x - 0.25f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v1.z + z + 0.5f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.x + x - 0.25f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v2.z + z + 0.5f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.x + x - 0.25f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v3.z + z + 0.5f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.x + x - 0.25f);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.y + y);
-				chunk->vertices.pfVectorAddfloat(&chunk->vertices, v4.z + z + 0.5f);
+				VectorPushBackfloat(&meshData->vertices, v1.x + x - 0.25f);
+				VectorPushBackfloat(&meshData->vertices, v1.y + y);
+				VectorPushBackfloat(&meshData->vertices, v1.z + z + 0.5f);
+				VectorPushBackfloat(&meshData->vertices, v2.x + x - 0.25f);
+				VectorPushBackfloat(&meshData->vertices, v2.y + y);
+				VectorPushBackfloat(&meshData->vertices, v2.z + z + 0.5f);
+				VectorPushBackfloat(&meshData->vertices, v3.x + x - 0.25f);
+				VectorPushBackfloat(&meshData->vertices, v3.y + y);
+				VectorPushBackfloat(&meshData->vertices, v3.z + z + 0.5f);
+				VectorPushBackfloat(&meshData->vertices, v4.x + x - 0.25f);
+				VectorPushBackfloat(&meshData->vertices, v4.y + y);
+				VectorPushBackfloat(&meshData->vertices, v4.z + z + 0.5f);
 
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
-				chunk->colors.pfVectorAddfloat(&chunk->colors, 1.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
 
 				uint8_t textureID = 0;
 				switch (i)
@@ -282,28 +285,28 @@ void CreateVoxel(struct Chunk *chunk, int x, int y, int z, uint8_t ID)
 				float normalized = 1.0f / TEXTURE_ATLAS_SIZE_IN_BLOCKS;
 				uvx *= normalized;
 				uvy *= normalized;
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvx + normalized - UV_OFFSET);
-				chunk->uvs.pfVectorAddfloat(&chunk->uvs, uvy + normalized - UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvx + UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvy + UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvx + UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvy + normalized - UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvx + normalized - UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvy + UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvx + normalized - UV_OFFSET);
+				VectorPushBackfloat(&meshData->uvs, uvy + normalized - UV_OFFSET);
 
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex);
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 2);
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 1);
-				chunk->indices.pfVectorAddint(&chunk->indices, chunk->indiceIndex + 3);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex + 1);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex + 2);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex + 2);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex + 1);
+				VectorPushBackint(&meshData->indices, chunk->indiceIndex + 3);
 				chunk->indiceIndex += 4;
 			}
 		}
 	}
 }
 
-void CreateChunkBufferData(struct Chunk *chunk)
+void CreateChunkBufferData(struct Chunk *chunk, struct MeshData *meshData)
 {
     glGenVertexArrays(1, &chunk->VAO);
 	glGenBuffers(1, &chunk->VBO);
@@ -314,16 +317,16 @@ void CreateChunkBufferData(struct Chunk *chunk)
 	glBindVertexArray(chunk->VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->VBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->vertices.pfVectorTotalfloat(&chunk->vertices) * sizeof(float), (const void *)chunk->vertices.vectorListfloat.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VectorTotalfloat(&meshData->vertices) * sizeof(float), (const void *)meshData->vertices.vectorListfloat.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunk->indices.pfVectorTotalint(&chunk->indices) * sizeof(int), (const void *)chunk->indices.vectorListint.items, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, VectorTotalint(&meshData->indices) * sizeof(int), (const void *)meshData->indices.vectorListint.items, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->CBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->colors.pfVectorTotalfloat(&chunk->colors) * sizeof(float), (const void *)chunk->colors.vectorListfloat.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VectorTotalfloat(&meshData->colors) * sizeof(float), (const void *)meshData->colors.vectorListfloat.items, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->UVBO);
-	glBufferData(GL_ARRAY_BUFFER, chunk->uvs.pfVectorTotalfloat(&chunk->uvs) * sizeof(float), (const void *)chunk->uvs.vectorListfloat.items, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, VectorTotalfloat(&meshData->uvs) * sizeof(float), (const void *)meshData->uvs.vectorListfloat.items, GL_STATIC_DRAW);
 
 	// position attribute
 	glBindBuffer(GL_ARRAY_BUFFER, chunk->VBO);
@@ -348,20 +351,16 @@ void DeleteChunk(struct Chunk *chunk)
 	glDeleteBuffers(1, &chunk->EBO);
 	glDeleteBuffers(1, &chunk->CBO);
 	glDeleteBuffers(1, &chunk->UVBO);
-
-	chunk->vertices.pfVectorFreefloat(&chunk->vertices);
-	chunk->indices.pfVectorFreeint(&chunk->indices);
-	chunk->colors.pfVectorFreefloat(&chunk->colors);
-	chunk->uvs.pfVectorFreefloat(&chunk->uvs);
 }
 
 void ClearChunk(struct Chunk *chunk)
 {
 	chunk->indiceIndex = 0;
-	chunk->vertices.pfVectorFreefloat(&chunk->vertices);
-	chunk->indices.pfVectorFreeint(&chunk->indices);
-	chunk->colors.pfVectorFreefloat(&chunk->colors);
-	chunk->uvs.pfVectorFreefloat(&chunk->uvs);
+	glDeleteVertexArrays(1, &chunk->VAO);
+	glDeleteBuffers(1, &chunk->VBO);
+	glDeleteBuffers(1, &chunk->EBO);
+	glDeleteBuffers(1, &chunk->CBO);
+	glDeleteBuffers(1, &chunk->UVBO);
 }
 
 
@@ -376,7 +375,7 @@ void RenderChunk(struct Chunk *chunk, struct Shader *shader)
 	SetShaderMatrix4(shader, "model", model, false);
 
 	glBindVertexArray(chunk->VAO);
-	glDrawElements(GL_TRIANGLES, chunk->indices.pfVectorTotalint(&chunk->indices), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, chunk->indiceIndex, GL_UNSIGNED_INT, 0);
 }
 
 void CreateVoxels(struct Chunk *chunk)
@@ -397,10 +396,11 @@ void CreateVoxels(struct Chunk *chunk)
 
 void CreateVertices(struct Chunk *chunk)
 {
-	VectorInitfloat(&chunk->vertices);
-    VectorInitfloat(&chunk->colors);
-    VectorInitfloat(&chunk->uvs);
-    VectorInitint(&chunk->indices);
+	struct MeshData meshData;
+	VectorInitfloat(&meshData.vertices);
+    VectorInitfloat(&meshData.colors);
+    VectorInitfloat(&meshData.uvs);
+    VectorInitint(&meshData.indices);
 
 	while (VectorTotalvoxelmod(&chunk->modifications) > 0)
 	{
@@ -410,16 +410,89 @@ void CreateVertices(struct Chunk *chunk)
 		chunk->voxels[(int)(voxel.position.x - chunk->position.x)][(int)(voxel.position.y - chunk->position.y)][(int)(voxel.position.z - chunk->position.z)] = voxel.ID;
 	}
 
+	CalculateLight(chunk);
+
 	for(int x = 0; x < CHUNK_SIZE_X; x++)
 	{
 		for(int y = 0; y < CHUNK_SIZE_Y; y++)
 		{
 			for(int z = 0; z < CHUNK_SIZE_Z; z++)
 			{
-				CreateVoxel(chunk, x, y, z, chunk->voxels[x][y][z]);
+				CreateVoxel(chunk, &meshData, x, y, z, chunk->voxels[x][y][z]);
 			}
 		}
 	}
+
+	CreateChunkBufferData(chunk, &meshData);
+
+	chunk->indiceIndex = VectorTotalint(&meshData.indices); // NOTE(Aidan): THIS IS JUST A SMALL OPTIMIZATION THAT MIGHT NOT WORK OR CVAUSE ERROES BUT WHAT IS SUPPOSED TO HAPPEN IS THAT SSINCE WE DONT NEED INDICEINDEX ANYMORE WE CAN NOW USE IT AS A COUNT OF ALL THE INDICIES!!!
+
+	VectorFreefloat(&meshData.vertices);
+	VectorFreefloat(&meshData.colors);
+	VectorFreefloat(&meshData.uvs);
+	VectorFreeint(&meshData.indices);
+}
+
+void CalculateLight(struct Chunk *chunk)
+{
+	VECTOR_INIT(ivec3s, litVoxels);
+	for (int x = 0; x < CHUNK_SIZE_X; x++)
+	{
+		for (int z = 0; z < CHUNK_SIZE_Z; z++)
+		{
+			float lightRay = 0.0f;
+
+			for (int y = CHUNK_SIZE_Y - 1; y >= 0; y--)
+			{
+				uint8_t thisVoxel = chunk->voxels[x][y][z];
+
+				if (thisVoxel > 0 && voxels[thisVoxel].transparency < lightRay && !voxels[thisVoxel].cross)
+					lightRay = voxels[thisVoxel].transparency;
+
+				lightRay += voxels[thisVoxel].lightLevel / 15;
+				if(lightRay > 1.0f)
+					lightRay = 1.0f;
+				chunk->lights[x][y][z] = (uint8_t)(lightRay * 100.0f / 6.667f);
+
+				if (lightRay > LIGHT_RAY_FALLOFF)
+					VectorPushBackivec3s(&litVoxels, (ivec3s){x, y, z});
+			}
+		}
+	}
+	int d = 0;
+	while (VectorTotalivec3s(&litVoxels) > d)
+	{
+		ivec3s v = VectorGetivec3s(&litVoxels, d);
+		d++;
+		for (int p = 0; p < 6; p++)
+		{
+			ivec3s neighbor = (ivec3s){v.x + normals[p][0], v.y + normals[p][1], v.z + normals[p][2]};
+
+			if (IsVoxelInChunk(chunk, neighbor.x, neighbor.y, neighbor.z))
+			{
+				if (chunk->lights[neighbor.x][neighbor.y][neighbor.z] < chunk->lights[v.x][v.y][v.z] - LIGHT_FALLOFF)
+				{
+					chunk->lights[neighbor.x][neighbor.y][neighbor.z] = chunk->lights[v.x][v.y][v.z] - LIGHT_FALLOFF;
+
+					if (chunk->lights[neighbor.x][neighbor.y][neighbor.z] > LIGHT_FALLOFF)
+						VectorPushBackivec3s(&litVoxels, neighbor);
+				}
+			}
+			else if(IsChunkInWorld(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))) // FIX THIS
+			{
+				printf("%i ,%i. neighjbor: %i, %i \n", (int)floorf(chunk->position.x / CHUNK_SIZE_X), (int)floorf(chunk->position.z / CHUNK_SIZE_Z), GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}).x, GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}).y);
+				if (GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] < GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[v.x][v.y][v.z] - LIGHT_FALLOFF)
+				{
+					GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] = GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[v.x][v.y][v.z] - LIGHT_FALLOFF;
+
+					if (GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] > LIGHT_FALLOFF)
+						VectorPushBackivec3s(&litVoxels, neighbor);
+				}
+			}
+		}
+	}
+
+	VectorFreeivec3s(&litVoxels);
 }
 
 bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z)

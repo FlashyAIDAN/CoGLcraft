@@ -60,10 +60,17 @@ struct Texture2D crosshair;
 struct Texture2D currentBlockItems[(sizeof(voxels) / sizeof(voxels[0])) - 1];
 struct Texture2D inventoryTexture;
 struct Texture2D hotbarTexture;
+struct Texture2D breakTexture[10];
+struct Texture2D cloudsTexture;
 struct Shader uiShader;
 struct Shader playerShader;
 struct Player player;
 struct UIrenderer uiRenderer;
+
+ivec3s oldBLockBreaking = {0, 0, 0};
+float currentBlockBreakingHealth = 0.0f;
+float currentBlockBreakingMaxHealth = 0.0f;
+bool playerBreaking = false;
 
 bool debugLines = false;
 
@@ -125,8 +132,10 @@ int main(int argc, const char *argv[])
 
 	texture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	texture = MakeTexture("res/textures/testatlas_from_google.png", &texture, true);
+
 	crosshair = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	crosshair = MakeTexture("res/textures/simple_crosshair.png", &crosshair, true);
+
 	for(int i = 0; i < (sizeof(voxels) / sizeof(voxels[0])) - 1; i++)
 	{
 		currentBlockItems[i] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
@@ -148,14 +157,43 @@ int main(int argc, const char *argv[])
 	}
 	inventoryTexture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	inventoryTexture = MakeTexture("res/textures/updated_inventory.png", &inventoryTexture, false);
+
 	hotbarTexture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	hotbarTexture = MakeTexture("res/textures/hotbar.png", &hotbarTexture, false);
+
+	breakTexture[0] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[0] = MakeTexture("res/textures/break/1.png", &breakTexture[0], false);
+	breakTexture[1] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[1] = MakeTexture("res/textures/break/2.png", &breakTexture[1], false);
+	breakTexture[2] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[2] = MakeTexture("res/textures/break/3.png", &breakTexture[2], false);
+	breakTexture[3] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[3] = MakeTexture("res/textures/break/4.png", &breakTexture[3], false);
+	breakTexture[4] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[4] = MakeTexture("res/textures/break/5.png", &breakTexture[4], false);
+	breakTexture[5] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[5] = MakeTexture("res/textures/break/6.png", &breakTexture[5], false);
+	breakTexture[6] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[6] = MakeTexture("res/textures/break/7.png", &breakTexture[6], false);
+	breakTexture[7] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[7] = MakeTexture("res/textures/break/8.png", &breakTexture[7], false);
+	breakTexture[8] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[8] = MakeTexture("res/textures/break/9.png", &breakTexture[8], false);
+	breakTexture[9] = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	breakTexture[9] = MakeTexture("res/textures/break/10.png", &breakTexture[9], false);
+
+	cloudsTexture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	cloudsTexture = MakeTexture("res/textures/shit_clouds.png", &cloudsTexture, false);
+
 	playerShader = MakeShader("res/shaders/chunk_vertex.glsl", "res/shaders/chunk_fragment.glsl", NULL);
+
 	uiShader = MakeShader("res/shaders/ui_vertex.glsl", "res/shaders/ui_fragment.glsl", NULL);
+
 	player = MakePlayer(playerShader, screenWidth, screenHeight);
 	player.position = (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z };
 	if(access( "res/saves/main/player/player.data", 0 ) != -1)
 		LoadPlayer(&player);
+	
 	uiRenderer = MakeUIrenderer(uiShader, screenWidth, screenHeight);
 
 	// Read Config File
@@ -176,22 +214,61 @@ int main(int argc, const char *argv[])
     //printf("Found \"%s\" after \"%s\"\n\n", word, seedString);
 	SimplexInit((int)strtol(word, (char **)NULL, 10));
 
-	currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
+	currentChunk = GetCurrentChunkCoordinates((vec2s){player.position.x, player.position.z});
 	oldChunk = currentChunk;
 	WorldStart(&player.shader, currentChunk);
 
 	// Outline Cube Test
-	unsigned int oCubeVAO, oCubeVBO, oCubeEBO = 0;
-	float oCubeVerticeData[24] = 
+	unsigned int oCubeVAO, oCubeVBO, oCubeEBO, oCubeC, oCubeUV = 0;
+	unsigned int oLineVAO, oLineVBO, oLineEBO  = 0;
+	float oCubeVerticeData[36] = 
 	{
-		0, 0, 0,
-		1, 0, 0,
-		1, 1, 0,
-		0, 1, 0,
-		0, 0, 1,
-		1, 0, 1,
-		1, 1, 1,
-		0, 1, 1
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f
+	};
+
+	float oCubeUVData[24] = 
+	{
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+    	1.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		0.0f, 1.0f
+	};
+
+	float oCubeColorData[36] = 
+	{
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f
 	};
 
 	unsigned int oCubeIndiceData[36] =
@@ -200,26 +277,125 @@ int main(int argc, const char *argv[])
 		0, 3, 1, 1, 3, 2, // Back Face
 		4, 7, 0, 0, 7, 3, // Left Face
 		1, 2, 5, 5, 2, 6, // Right Face
-		3, 7, 2, 2, 7, 6, // Top Face
-		1, 5, 0, 0, 5, 4  // Bottom Face
+		3, 8, 2, 2, 8, 10, // Top Face
+		1, 9, 0, 0, 9, 11  // Bottom Face
 	};
 
 	glGenVertexArrays(1, &oCubeVAO);
 	glGenBuffers(1, &oCubeVBO);
 	glGenBuffers(1, &oCubeEBO);
+	glGenBuffers(1, &oCubeC);
+	glGenBuffers(1, &oCubeUV);
 
 	glBindVertexArray(oCubeVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, oCubeVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(oCubeVerticeData), oCubeVerticeData, GL_STATIC_DRAW);
 
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeC);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(oCubeColorData), oCubeColorData, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeUV);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(oCubeUVData), oCubeUVData, GL_STATIC_DRAW);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, oCubeEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(oCubeIndiceData), oCubeIndiceData, GL_STATIC_DRAW);
 
-	// position attribute
 	glBindBuffer(GL_ARRAY_BUFFER, oCubeVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeC);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oCubeUV);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(2);
+
+	glGenVertexArrays(1, &oLineVAO);
+	glGenBuffers(1, &oLineVBO);
+	glGenBuffers(1, &oLineEBO);
+
+	glBindVertexArray(oLineVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oLineVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(oCubeVerticeData), oCubeVerticeData, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, oLineEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(oCubeIndiceData), oCubeIndiceData, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, oLineVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	float cloudVertices[12] =
+	{
+        // pos      // tex     // colors           // texture coords
+        -0.5f, -0.5f, 0.0f,  // top right
+         0.5f, -0.5f, 0.0f,  // bottom right
+         0.5f,  0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f  // top left 
+    };
+
+	float cloudUVs[8] =
+	{
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f
+	};
+
+	float cloudColors[12] =
+	{
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f
+	};
+
+	unsigned int cloudIndices[6] =
+	{
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+
+    unsigned int cloudVAO, cloudVBO, cloudEBO, cloudColor , cloudUV = 0;
+
+    glGenVertexArrays(1, &cloudVAO);
+    glGenBuffers(1, &cloudVBO);
+    glGenBuffers(1, &cloudEBO);
+    glGenBuffers(1, &cloudColor);
+    glGenBuffers(1, &cloudUV);
+
+    glBindVertexArray(cloudVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cloudVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cloudVertices), cloudVertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudColor);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cloudColors), cloudColors, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudUV);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cloudUVs), cloudUVs, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cloudEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cloudIndices), cloudIndices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudColor);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cloudUV);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
 	char *str1 = ReadFileToString("res/saves/main/world.data");
 	const char *s1 = "Time = ";
@@ -242,9 +418,12 @@ int main(int argc, const char *argv[])
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		time += deltaTime;
+		time += deltaTime * 300;
 		if(time > TIME_MAX)
+		{
+			oldTime = 0.0f;
 			time = 0.0f;
+		}
 
 
 		if(time <= TIME_MAX / 2)
@@ -254,6 +433,7 @@ int main(int argc, const char *argv[])
 
 		if(time > oldTime + 50.0f)
 		{
+			chunkGlobalLightLevel = globalLightLevel;
 			SetShaderFloat(&player.shader, "globalLightLevel", globalLightLevel, true);
 			oldTime = time;
 		}
@@ -266,7 +446,7 @@ int main(int argc, const char *argv[])
 
 		// Get Current Chunk
 		//printf("Current Chunk(X: %i, Z: %i)\n", currentChunk.x, currentChunk.y);
-		currentChunk = GetCurrentChunkCoordinates(player.position.x, player.position.z);
+		currentChunk = GetCurrentChunkCoordinates((vec2s){player.position.x, player.position.z});
 		if(oldChunk.x != currentChunk.x || oldChunk.y != currentChunk.y)
 		{
 			oldChunk = currentChunk;
@@ -275,8 +455,30 @@ int main(int argc, const char *argv[])
 
 		PlayerUpdate(&player, deltaTime);
 
-		// UseShader(&shader);
 		WorldRender(&texture, &player.shader);
+
+		int currentBreakTextureIndex = 0;
+
+		if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - (currentBlockBreakingMaxHealth / 10.0f))
+			currentBreakTextureIndex = 0;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 2))
+			currentBreakTextureIndex = 1;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 3))
+			currentBreakTextureIndex = 2;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 4))
+			currentBreakTextureIndex = 3;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 5))
+			currentBreakTextureIndex = 4;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 6))
+			currentBreakTextureIndex = 5;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 7))
+			currentBreakTextureIndex = 6;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 8))
+			currentBreakTextureIndex = 7;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 9))
+			currentBreakTextureIndex = 8;
+		else if(currentBlockBreakingHealth >= currentBlockBreakingMaxHealth - ((currentBlockBreakingMaxHealth / 10.0f) * 10))
+			currentBreakTextureIndex = 9;
 
 		// Outline Cube Test
 		ivec3s oCubePos = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, false);
@@ -287,8 +489,28 @@ int main(int argc, const char *argv[])
 		oCubeModel = glms_translate(oCubeModel, (vec3s){oCubePos.x - 0.025f, oCubePos.y - 0.025f, oCubePos.z - 0.025f});
 		oCubeModel = glms_scale(oCubeModel, (vec3s){1.05f, 1.05f, 1.05f});
 		SetShaderMatrix4(&player.shader, "model", oCubeModel, true);
-		glBindVertexArray(oCubeVAO);
+		glBindVertexArray(oLineVAO);
 		glDrawElements(GL_LINES, 36, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(oCubeVAO);
+		glActiveTexture(GL_TEXTURE0);
+    	BindTexture(&breakTexture[currentBreakTextureIndex]);
+		if(playerBreaking)
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		mat4s cloudModel = { 1.0f, 0.0f, 0.0f, 0.0f,
+                 		 	0.0f, 1.0f, 0.0f, 0.0f,
+                    	 	0.0f, 0.0f, 1.0f, 0.0f,
+                    	 	0.0f, 0.0f, 0.0f, 1.0f };
+		cloudModel = glms_translate(cloudModel, (vec3s){player.position.x - 500.0f, 200.0f, player.position.z + 500.0f /* SIZE / 2*/});
+		cloudModel = glms_rotate(cloudModel, glm_rad(270.0f), (vec3s){1.0f, 0.0f, 0.0f});
+		cloudModel = glms_scale(cloudModel, (vec3s){1000.0f, 1000.0f, 1000.0f});
+		SetShaderMatrix4(&player.shader, "model", cloudModel, true);
+		SetShaderInteger(&player.shader, "fog", false, false);
+
+		glBindVertexArray(oCubeVAO);
+		glActiveTexture(GL_TEXTURE0);
+    	BindTexture(&cloudsTexture);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 		if(!player.inInventory)
 		{
@@ -312,6 +534,19 @@ int main(int argc, const char *argv[])
 	glDeleteVertexArrays(1, &oCubeVAO);
 	glDeleteBuffers(1, &oCubeVBO);
 	glDeleteBuffers(1, &oCubeEBO);
+	glDeleteBuffers(1, &oCubeC);
+	glDeleteBuffers(1, &oCubeUV);
+
+	glDeleteVertexArrays(1, &oLineVAO);
+	glDeleteBuffers(1, &oLineVBO);
+	glDeleteBuffers(1, &oLineEBO);
+
+	glDeleteVertexArrays(1, &cloudVAO);
+	glDeleteBuffers(1, &cloudVBO);
+	glDeleteBuffers(1, &cloudEBO);
+	glDeleteBuffers(1, &cloudColor);
+	glDeleteBuffers(1, &cloudUV);
+
 	DeleteUIrenderer(&uiRenderer);
 
 	DeletePlayer(&player);
@@ -364,18 +599,14 @@ void ProcessInput()
 	if(!player.inInventory)
 	{
 		if (GetKey(GLFW_KEY_W))
-			player.vertical = 1;
+			player.vertical = lerp(player.vertical, player.speed, player.acceleration);
 		if (GetKey(GLFW_KEY_S))
-			player.vertical = -1;
-		if (GetKeyReleased(GLFW_KEY_W) && GetKeyReleased(GLFW_KEY_S))
-			player.vertical = 0;
+			player.vertical = lerp(player.vertical, -player.speed, player.acceleration);
 
 		if (GetKey(GLFW_KEY_A))
-			player.horizontal = -1;
+			player.horizontal = lerp(player.horizontal, -player.speed, player.acceleration);
 		if (GetKey(GLFW_KEY_D))
-			player.horizontal = 1;
-		if (GetKeyReleased(GLFW_KEY_A) && GetKeyReleased(GLFW_KEY_D))
-			player.horizontal = 0;
+			player.horizontal = lerp(player.horizontal, player.speed, player.acceleration);
 
 		if (GetKey(GLFW_KEY_LEFT_SHIFT))
 			player.isSprinting = true;
@@ -387,22 +618,43 @@ void ProcessInput()
 			player.jumpRequest = true;
 		}
 
-		if(GetKeyDown(GLFW_MOUSE_BUTTON_LEFT))
+		if(GetKey(GLFW_MOUSE_BUTTON_LEFT))
 		{
+			playerBreaking = true;
 			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, false);
-			if(block.x >= 0 && block.y >= 0 && block.z >= 0)
+			if(block.x == oldBLockBreaking.x && block.y == oldBLockBreaking.y && block.z == oldBLockBreaking.z)
 			{
-				struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
-				ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-				EditVoxel(chunk, chunkBlock, 0);
+				currentBlockBreakingHealth -= 20.0f * deltaTime;
+				if(currentBlockBreakingHealth <= 0.0f && block.x >= 0 && block.y >= 0 && block.z >= 0)
+				{
+					struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
+					ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+					EditVoxel(chunk, chunkBlock, 0);
+				}
 			}
+			else
+			{
+				oldBLockBreaking = block;
+				if(block.x >= 0 && block.y >= 0 && block.z >= 0)
+				{
+					struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
+					ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+					currentBlockBreakingHealth = voxels[GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z)].health;
+					currentBlockBreakingMaxHealth = voxels[GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z)].health;
+				}
+			}
+		}
+		else
+		{
+			playerBreaking = false;
+			currentBlockBreakingHealth = currentBlockBreakingMaxHealth;
 		}
 		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
 			if(block.x >= 0 && block.y >= 0 && block.z >= 0)
 			{
-				struct Chunk *chunk = GetChunk((int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z));
+				struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 				ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
 				EditVoxel(chunk, chunkBlock, currentBlock);
 			}
@@ -517,10 +769,7 @@ void MouseCallback(GLFWwindow *window, double xPos, double yPos)
 		xOffset *= player.camera.sensitivity;
 		yOffset *= player.camera.sensitivity;
 
-		player.camera.yaw += xOffset;
-		player.camera.pitch += yOffset;
-
-		player.camera.yaw += xOffset;
+		player.camera.yaw = fmod((player.camera.yaw + xOffset), 360.0f);
 		player.camera.pitch += yOffset;
 
 		if(player.camera.pitch > 89.0f)
