@@ -77,7 +77,7 @@ void DeleteChunk(struct Chunk *chunk);
 void ClearChunk(struct Chunk *chunk);
 void RenderChunk(struct Chunk *chunk, struct Shader *shader);
 void CreateVoxels(struct Chunk *chunk);
-void CreateVertices(struct Chunk *chunk);
+void CreateVertices(struct Chunk *chunk, bool shade);
 void CalculateLight(struct Chunk *chunk);
 
 bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z);

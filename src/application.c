@@ -441,7 +441,7 @@ int main(int argc, const char *argv[])
 		ProcessInput();
 		glfwPollEvents();
 
-		glClearColor(lerp(DAY_COLOR_R, NIGHT_COLOR_R, globalLightLevel), lerp(DAY_COLOR_G, NIGHT_COLOR_G, globalLightLevel), lerp(DAY_COLOR_B, NIGHT_COLOR_B, globalLightLevel), 1.0f);
+		glClearColor(lerp(NIGHT_COLOR_R, DAY_COLOR_R, globalLightLevel), lerp(NIGHT_COLOR_G, DAY_COLOR_G, globalLightLevel), lerp(NIGHT_COLOR_B, DAY_COLOR_B, globalLightLevel), 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Get Current Chunk

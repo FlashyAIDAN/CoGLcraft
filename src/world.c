@@ -126,7 +126,7 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 
 	for(int i = 0; i < VectorTotalivec3s(&startMesh); i++)
 	{
-		CreateVertices(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
+		CreateVertices(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z], true);
 		//CreateChunkBufferData(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
 	}
 	VectorFreeivec3s(&startMesh);
@@ -187,7 +187,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 			// if (count > 200) // Splits work up each frame for every 200 voxels
 				// return;
 		}
-		CreateVertices(currentChunk);
+		CreateVertices(currentChunk, true);
 	 	//CreateChunkBufferData(currentChunk);
 		VectorDeleteivec2s(&updateMesh, 0);
 	}
@@ -195,7 +195,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	{
 		struct Chunk *currentChunk = dimensions[0].chunks[VectorGetivec2s(&makeMesh, 0).x][VectorGetivec2s(&makeMesh, 0).y];
 		currentChunk->inVector = false;
-		CreateVertices(currentChunk);
+		CreateVertices(currentChunk, true);
 	 	//CreateChunkBufferData(currentChunk);
 		VectorDeleteivec2s(&makeMesh, 0);
 	}
@@ -204,7 +204,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	{
 		struct Chunk *currentChunk = dimensions[0].chunks[VectorGetivec2s(&modifyMesh, d).x][VectorGetivec2s(&modifyMesh, d).y];
 		ClearChunk(currentChunk);
-		CreateVertices(currentChunk);
+		CreateVertices(currentChunk, true);
 	 	//CreateChunkBufferData(currentChunk);
 		currentChunk->modified = false;
 		d++;
@@ -417,8 +417,8 @@ uint8_t GenerateVoxel(vec3s position, int x, int y, int z)
 
 ivec2s GetCurrentChunkCoordinates(vec2s position)
 {
-	int _x = (int)floor(position.x / (float)CHUNK_SIZE_X);
-	int _z = (int)floor(position.y / (float)CHUNK_SIZE_Z);
+	int _x = (int)floorf(position.x / (float)CHUNK_SIZE_X);
+	int _z = (int)floorf(position.y / (float)CHUNK_SIZE_Z);
 
 	return (ivec2s){_x, _z};
 }

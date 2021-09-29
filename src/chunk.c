@@ -394,7 +394,7 @@ void CreateVoxels(struct Chunk *chunk)
 	chunk->populated = true;
 }
 
-void CreateVertices(struct Chunk *chunk)
+void CreateVertices(struct Chunk *chunk, bool shade)
 {
 	struct MeshData meshData;
 	VectorInitfloat(&meshData.vertices);
@@ -410,7 +410,8 @@ void CreateVertices(struct Chunk *chunk)
 		chunk->voxels[(int)(voxel.position.x - chunk->position.x)][(int)(voxel.position.y - chunk->position.y)][(int)(voxel.position.z - chunk->position.z)] = voxel.ID;
 	}
 
-	CalculateLight(chunk);
+	if(shade)
+		CalculateLight(chunk);
 
 	for(int x = 0; x < CHUNK_SIZE_X; x++)
 	{
@@ -425,7 +426,7 @@ void CreateVertices(struct Chunk *chunk)
 
 	CreateChunkBufferData(chunk, &meshData);
 
-	chunk->indiceIndex = VectorTotalint(&meshData.indices); // NOTE(Aidan): THIS IS JUST A SMALL OPTIMIZATION THAT MIGHT NOT WORK OR CVAUSE ERROES BUT WHAT IS SUPPOSED TO HAPPEN IS THAT SSINCE WE DONT NEED INDICEINDEX ANYMORE WE CAN NOW USE IT AS A COUNT OF ALL THE INDICIES!!!
+	chunk->indiceIndex = VectorTotalint(&meshData.indices); // NOTE(Aidan): THIS IS JUST A SMALL OPTIMIZATION THAT MIGHT NOT WORK OR IT WILL CAUSE ERROES BUT WHAT IS SUPPOSED TO HAPPEN IS THAT SSINCE WE DONT NEED INDICEINDEX ANYMORE WE CAN NOW USE IT AS A COUNT OF ALL THE INDICIES!!!
 
 	VectorFreefloat(&meshData.vertices);
 	VectorFreefloat(&meshData.colors);
@@ -436,6 +437,8 @@ void CreateVertices(struct Chunk *chunk)
 void CalculateLight(struct Chunk *chunk)
 {
 	VECTOR_INIT(ivec3s, litVoxels);
+	VECTOR_INIT(ivec2s, modifedMesh);
+
 	for (int x = 0; x < CHUNK_SIZE_X; x++)
 	{
 		for (int z = 0; z < CHUNK_SIZE_Z; z++)
@@ -449,9 +452,10 @@ void CalculateLight(struct Chunk *chunk)
 				if (thisVoxel > 0 && voxels[thisVoxel].transparency < lightRay && !voxels[thisVoxel].cross)
 					lightRay = voxels[thisVoxel].transparency;
 
-				lightRay += voxels[thisVoxel].lightLevel / 15;
+				lightRay += (float)voxels[thisVoxel].lightLevel / 15.0f;
 				if(lightRay > 1.0f)
 					lightRay = 1.0f;
+				
 				chunk->lights[x][y][z] = (uint8_t)(lightRay * 100.0f / 6.667f);
 
 				if (lightRay > LIGHT_RAY_FALLOFF)
@@ -478,18 +482,28 @@ void CalculateLight(struct Chunk *chunk)
 						VectorPushBackivec3s(&litVoxels, neighbor);
 				}
 			}
-			else if(IsChunkInWorld(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))) // FIX THIS
+			else if(IsChunkInWorld(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z})) && GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->renderable) // FIX THIS
 			{
-				printf("%i ,%i. neighjbor: %i, %i \n", (int)floorf(chunk->position.x / CHUNK_SIZE_X), (int)floorf(chunk->position.z / CHUNK_SIZE_Z), GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}).x, GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}).y);
-				if (GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] < GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[v.x][v.y][v.z] - LIGHT_FALLOFF)
-				{
-					GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] = GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[v.x][v.y][v.z] - LIGHT_FALLOFF;
+				struct Chunk *currentChunk = GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}));
+				currentChunk->lights[abs((int)currentChunk->position.x - (int)chunk->position.x - neighbor.x)][neighbor.y][abs((int)currentChunk->position.z - (int)chunk->position.z - neighbor.z)] = 1;
 
-					if (GetChunk(GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}))->lights[neighbor.x][neighbor.y][neighbor.z] > LIGHT_FALLOFF)
-						VectorPushBackivec3s(&litVoxels, neighbor);
+				if (currentChunk->lights[abs((int)currentChunk->position.x - (int)chunk->position.x - neighbor.x)][neighbor.y][abs((int)currentChunk->position.z - (int)chunk->position.z - neighbor.z)] > LIGHT_FALLOFF)
+					VectorPushBackivec3s(&litVoxels, neighbor);
+				if(!currentChunk->modified)
+				{
+					VectorPushBackivec2s(&modifedMesh, GetCurrentChunkCoordinates((vec2s){chunk->position.x + neighbor.x, chunk->position.z + neighbor.z}));
+					currentChunk->modified = true;
 				}
 			}
 		}
+	}
+
+	for(int mc = 0; mc < VectorTotalivec2s(&modifedMesh); mc++)
+	{
+		struct Chunk *currentChunk = GetChunk(VectorGetivec2s(&modifedMesh, mc));
+		ClearChunk(currentChunk);
+		CreateVertices(currentChunk, false);
+		currentChunk->modified = false;
 	}
 
 	VectorFreeivec3s(&litVoxels);
