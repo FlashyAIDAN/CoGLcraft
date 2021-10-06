@@ -16,6 +16,10 @@ vectorvoxelmod GenerateStructure(enum StructureType type, ivec3s position, int m
 	case PLANT:
 		mods = MakePlants(position, ID);
 		break;
+	
+	case SMALLHOUSE:
+		mods = MakeSmallHouse(position);
+		break;
 
 	default:
 		break;
@@ -40,6 +44,19 @@ vectorvoxelmod MakeTree(ivec3s position, int minTrunkHeight, int maxTrunkHeight)
 
 	for (int i = 1; i < height; i++)
         VectorPushBackvoxelmod(&mods, (struct VoxelMod){(ivec3s){position.x, position.y + i, position.z}, 5});
+
+	return mods;
+}
+
+vectorvoxelmod MakeSmallHouse(ivec3s position)
+{
+	VECTOR_INIT(voxelmod, mods);
+
+	for(int y = 1; y < 6; y++)
+		for(int x = -3; x < 4; x++)
+			for(int z = -3; z < 4; z++)
+				if((y == 1 || y == 5 || (x == -3 || x == 3) || (z == -3 || z == 3)) && ((y != 2 && y != 3) || (x != 0 || z != 3)))
+					VectorPushBackvoxelmod(&mods, (struct VoxelMod){(ivec3s){position.x + x, position.y + y, position.z + z}, 8});
 
 	return mods;
 }

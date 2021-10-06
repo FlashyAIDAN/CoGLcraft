@@ -26,6 +26,11 @@
 defineVector(float);
 defineVector(int);
 
+struct Color
+{
+    uint8_t r, g, b;
+};
+
 struct Chunk
 {
     vec3s position;

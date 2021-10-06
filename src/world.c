@@ -13,7 +13,7 @@ struct Lode lodes[3] =
 
 struct Biome biomes[2] =
 {
-	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 3, 2, 3},
+	{"Forest", 100, 0.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 3, 3, 3},
 	{"Desert", 100, 500.0f, 0.125f, 0.0f, 0.25f, NULL, NULL, NULL, 1, 1, 1}
 	// {"Mountain", 125, 875.0f, 0.075f, 0.0f, 0.125f, NULL, NULL, NULL, 1, 0, 3}
 };
@@ -36,22 +36,23 @@ int wnormals[6][3] =
 void WorldStart(struct Shader *shader, ivec2s currentChunk)
 {
 	// BIOME 1
-	biomes[0].blocks = calloc(3, sizeof(struct BiomeBlock));
-	biomes[0].structures = calloc(2, sizeof(struct Structure));
-	biomes[0].lodes = calloc(3, sizeof(struct Lode));
+	biomes[0].blocks = calloc(biomes[0].sizeofBlocks, sizeof(struct BiomeBlock));
+	biomes[0].structures = calloc(biomes[0].sizeofStructures, sizeof(struct Structure));
+	biomes[0].lodes = calloc(biomes[0].sizeofLodes, sizeof(struct Lode));
 	biomes[0].blocks[0] = (struct BiomeBlock){2, 0, 0};
 	biomes[0].blocks[1] = (struct BiomeBlock){1, 5, 1};
 	biomes[0].blocks[2] = (struct BiomeBlock){3, 256, 6};
-	biomes[0].structures[0] = (struct Structure){PLANT, 0, 0, 0, 18, 1000.0f, 2.0f, 0.3f, 0.0f, 15.0f, 0.5f}; // Make sure this is first or else they will replace the base trunk of trees ifd they overlap
+	biomes[0].structures[0] = (struct Structure){SMALLHOUSE, 4, 7, 0, 0, 1250.0f, 3.3f, 0.6f, 0.0f, 15.0f, 0.7f};
 	biomes[0].structures[1] = (struct Structure){TREE, 4, 7, 0, 0, 0.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
+	biomes[0].structures[2] = (struct Structure){PLANT, 0, 0, 0, 18, 1000.0f, 2.0f, 0.3f, 0.0f, 15.0f, 0.5f}; // Make sure this is first or else they will replace the base trunk of trees ifd they overlap
 	biomes[0].lodes[0] = lodes[0];
 	biomes[0].lodes[1] = lodes[1];
 	biomes[0].lodes[2] = lodes[2];
 
 	// BIOME 2
-	biomes[1].blocks = calloc(1, sizeof(struct BiomeBlock));
-	biomes[1].structures = calloc(1, sizeof(struct Structure));
-	biomes[1].lodes = calloc(1, sizeof(struct Lode));
+	biomes[1].blocks = calloc(biomes[1].sizeofBlocks, sizeof(struct BiomeBlock));
+	biomes[1].structures = calloc(biomes[1].sizeofStructures, sizeof(struct Structure));
+	biomes[1].lodes = calloc(biomes[1].sizeofLodes, sizeof(struct Lode));
 	biomes[1].blocks[0] = (struct BiomeBlock){16, 256, 0};
 	biomes[1].structures[0] = (struct Structure){CACTUS, 5, 10, 0, 0, 750.0f, 1.3f, 0.6f, 0.0f, 15.0f, 0.5f};
 	biomes[1].lodes[0] = lodes[1];
@@ -151,21 +152,19 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 
 void WorldRender(struct Texture2D *texture, struct Shader *shader)
 {
-	
 	if(VectorTotalivec2s(&updateMesh) > 0)
 	{
 		struct Chunk *currentChunk = dimensions[0].chunks[VectorGetivec2s(&updateMesh, 0).x][VectorGetivec2s(&updateMesh, 0).y];
 		currentChunk->inVector = false;
 		CreateVoxels(currentChunk);
-		// int count = 0;
-		while (VectorTotalvectorvoxelmod(&modifications) > 0)
+		int e = 0;
+		int f = 0;
+		while (VectorTotalvectorvoxelmod(&modifications) > e) // FIX THE > e and > f
 		{
-			vectorvoxelmod queue = VectorGetvectorvoxelmod(&modifications, 0);
-			VectorDeletevectorvoxelmod(&modifications, 0);
-			while (VectorTotalvoxelmod(&queue) > 0)
+			vectorvoxelmod queue = VectorGetvectorvoxelmod(&modifications, e);
+			while (VectorTotalvoxelmod(&queue) > f)
 			{
-				struct VoxelMod voxel = VectorGetvoxelmod(&queue, 0);
-				VectorDeletevoxelmod(&queue, 0);
+				struct VoxelMod voxel = VectorGetvoxelmod(&queue, f);
 
 				if(IsChunkInWorld((ivec2s){(int)floorf((int)voxel.position.x / (float)CHUNK_SIZE_X), (int)floorf((int)voxel.position.z / (float)CHUNK_SIZE_Z)}))
 				{
@@ -182,11 +181,14 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 					}
 					VectorPushBackvoxelmod(&currentChunkMod->modifications, voxel);
 				}
+				f++;
 			}
-			// count++;
-			// if (count > 200) // Splits work up each frame for every 200 voxels
-				// return;
+			f = 0;
+			e++;
 		}
+		VectorFreevectorvoxelmod(&modifications);
+		VectorInitvectorvoxelmod(&modifications);
+		
 		CreateVertices(currentChunk, true);
 	 	//CreateChunkBufferData(currentChunk);
 		VectorDeleteivec2s(&updateMesh, 0);

@@ -8,6 +8,7 @@
 
 vectorvoxelmod GenerateStructure(enum StructureType type, ivec3s position, int minHeight, int maxHeight, uint8_t ID);
 vectorvoxelmod MakeTree(ivec3s position, int minTrunkHeight, int maxTrunkHeight);
+vectorvoxelmod MakeSmallHouse(ivec3s position);
 vectorvoxelmod MakeCactus(ivec3s position, int minTrunkHeight, int maxTrunkHeight);
 vectorvoxelmod MakePlants(ivec3s position, uint8_t ID);
 

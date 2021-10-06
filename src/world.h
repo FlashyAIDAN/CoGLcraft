@@ -19,14 +19,15 @@ defineVector(ivec3s);
 struct BiomeBlock
 {
 	uint8_t ID;
-	 int minHeight, maxHeight;
+	int minHeight, maxHeight;
 };
 
 enum StructureType
 {
 	TREE,
 	CACTUS,
-	PLANT
+	PLANT,
+	SMALLHOUSE
 };
 
 struct Structure
