@@ -1,8 +1,8 @@
 #include "chunk.h"
 #include "world.h"
 
-#define LIGHT_FALLOFF 1
-#define LIGHT_RAY_FALLOFF 0.08f
+// #define LIGHT_FALLOFF 1
+// #define LIGHT_RAY_FALLOFF 0.08f
 
 defineFuntionsVector(float, 0);
 defineFuntionsVector(int, 0);
@@ -143,18 +143,18 @@ void CreateVoxel(struct Chunk *chunk, struct MeshData *meshData, int x, int y, i
 					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][3]][1] + voxelModMeshFace.y + y);
 					VectorPushBackfloat(&meshData->vertices, verticeData[indiceData[i][3]][2] + voxelModMeshFace.z + z);
 
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-					VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
+					VectorPushBackfloat(&meshData->colors, 0.0f);
 
 					uint8_t textureID = 0;
 					switch (i)
@@ -247,18 +247,18 @@ void CreateVoxel(struct Chunk *chunk, struct MeshData *meshData, int x, int y, i
 				VectorPushBackfloat(&meshData->vertices, v4.y + y);
 				VectorPushBackfloat(&meshData->vertices, v4.z + z + 0.5f);
 
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
-				VectorPushBackfloat(&meshData->colors, (float)chunk->lights[x][y][z] / 15.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
+				VectorPushBackfloat(&meshData->colors, 0.0f);
 
 				uint8_t textureID = 0;
 				switch (i)
@@ -394,7 +394,7 @@ void CreateVoxels(struct Chunk *chunk)
 	chunk->populated = true;
 }
 
-void CreateVertices(struct Chunk *chunk, bool shade)
+void CreateVertices(struct Chunk *chunk)
 {
 	struct MeshData meshData;
 	VectorInitfloat(&meshData.vertices);
@@ -413,8 +413,8 @@ void CreateVertices(struct Chunk *chunk, bool shade)
 	VectorFreevoxelmod(&chunk->modifications);
 	VectorInitvoxelmod(&chunk->modifications);
 
-	if(shade)
-		CalculateLight(chunk);
+	//if(shade)
+		//CalculateLight(chunk);
 
 	for(int x = 0; x < CHUNK_SIZE_X; x++)
 	{
@@ -437,6 +437,15 @@ void CreateVertices(struct Chunk *chunk, bool shade)
 	VectorFreeint(&meshData.indices);
 }
 
+bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z)
+{
+	if (x < 0 || x > CHUNK_SIZE_X - 1 || y < 0 || y > CHUNK_SIZE_Y - 1 || z < 0 || z > CHUNK_SIZE_Z - 1)
+		return false;
+	else
+		return true;
+}
+
+/* Old Lighting Code
 void CalculateLight(struct Chunk *chunk)
 {
 	VECTOR_INIT(ivec3s, litVoxels);
@@ -532,11 +541,4 @@ void CalculateLight(struct Chunk *chunk)
 	VectorFreeivec3s(&litVoxels);
 	VectorFreeivec2s(&modifedMesh);
 }
-
-bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z)
-{
-	if (x < 0 || x > CHUNK_SIZE_X - 1 || y < 0 || y > CHUNK_SIZE_Y - 1 || z < 0 || z > CHUNK_SIZE_Z - 1)
-		return false;
-	else
-		return true;
-}
+ */

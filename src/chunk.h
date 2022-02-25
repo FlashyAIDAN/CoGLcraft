@@ -26,11 +26,6 @@
 defineVector(float);
 defineVector(int);
 
-struct Color
-{
-    uint8_t r, g, b;
-};
-
 struct Chunk
 {
     vec3s position;
@@ -38,7 +33,7 @@ struct Chunk
     unsigned int VAO, VBO, EBO, CBO, UVBO, indiceIndex;
 
     uint8_t voxels[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
-    uint8_t lights[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
+    //uint8_t lights[CHUNK_SIZE_X][CHUNK_SIZE_Y][CHUNK_SIZE_Z];
 
     bool renderable, populated, modified, inVector;
 
@@ -82,8 +77,8 @@ void DeleteChunk(struct Chunk *chunk);
 void ClearChunk(struct Chunk *chunk);
 void RenderChunk(struct Chunk *chunk, struct Shader *shader);
 void CreateVoxels(struct Chunk *chunk);
-void CreateVertices(struct Chunk *chunk, bool shade);
-void CalculateLight(struct Chunk *chunk);
+void CreateVertices(struct Chunk *chunk);
+//void CalculateLight(struct Chunk *chunk);
 
 bool IsVoxelInChunk(struct Chunk *chunk, int x, int y, int z);
 

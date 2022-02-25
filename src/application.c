@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "player.h"
 #include "world.h"
+#include "inventory.h"
 
 #include <stb_image.h>
 
@@ -57,6 +58,7 @@ float lastFrame = 0.0f;
 
 struct Texture2D texture;
 struct Texture2D crosshair;
+struct Texture2D highlightSlot;
 struct Texture2D currentBlockItems[(sizeof(voxels) / sizeof(voxels[0])) - 1];
 struct Texture2D inventoryTexture;
 struct Texture2D hotbarTexture;
@@ -79,11 +81,68 @@ int seed = 69420;
 ivec2s currentChunk = {0, 0};
 ivec2s oldChunk = {0, 0};
 
-uint8_t currentBlock = 1;
-
 float oldTime = 0.0f;
 float time = 0.0f;
 float globalLightLevel = 0.0f;
+
+uint8_t currentSlot = 0;
+vec2s hotbarPos[9] = 
+{
+	{-286.0f, -375.0f},
+	{-214.5f, -375.0f},
+	{-143.0f, -375.0f},
+	{-71.5f,  -375.0f},
+	{0.0f,    -375.0f},
+	{71.5f,   -375.0f},
+	{143.0f,  -375.0f},
+	{214.5f,  -375.0f},
+	{286.0f,  -375.0f}
+};
+Slot slots[36] =
+{
+	{{{0, 0, 0}, 0}, {-307.25f, -302.5f}, true},
+	{{{0, 0, 0}, 0}, {-230.0f,  -302.5f}, true},
+	{{{0, 0, 0}, 0}, {-152.75f, -302.5f}, true},
+	{{{0, 0, 0}, 0}, {-75.5f,   -302.5f}, true},
+	{{{0, 0, 0}, 0}, { 0.0f,    -302.5f}, true},
+	{{{0, 0, 0}, 0}, { 75.5f,   -302.5f}, true},
+	{{{0, 0, 0}, 0}, { 152.75f, -302.5f}, true},
+	{{{0, 0, 0}, 0}, { 230.0f,  -302.5f}, true},
+	{{{0, 0, 0}, 0}, { 307.25f, -302.5f}, true},
+	{{{0, 0, 0}, 0}, {-307.25f, -202.5f}, true},
+	{{{0, 0, 0}, 0}, {-230.0f,  -202.5f}, true},
+	{{{0, 0, 0}, 0}, {-152.75f, -202.5f}, true},
+	{{{0, 0, 0}, 0}, {-75.5f,   -202.5f}, true},
+	{{{0, 0, 0}, 0}, { 0.0f,    -202.5f}, true},
+	{{{0, 0, 0}, 0}, { 75.5f,   -202.5f}, true},
+	{{{0, 0, 0}, 0}, { 152.75f, -202.5f}, true},
+	{{{0, 0, 0}, 0}, { 230.0f,  -202.5f}, true},
+	{{{0, 0, 0}, 0}, { 307.25f, -202.5f}, true},
+	{{{0, 0, 0}, 0}, {-307.25f, -122.5f}, true},
+	{{{0, 0, 0}, 0}, {-230.0f,  -122.5f}, true},
+	{{{0, 0, 0}, 0}, {-152.75f, -122.5f}, true},
+	{{{0, 0, 0}, 0}, {-75.5f,   -122.5f}, true},
+	{{{0, 0, 0}, 0}, { 0.0f,    -122.5f}, true},
+	{{{0, 0, 0}, 0}, { 75.5f,   -122.5f}, true},
+	{{{0, 0, 0}, 0}, { 152.75f, -122.5f}, true},
+	{{{0, 0, 0}, 0}, { 230.0f,  -122.5f}, true},
+	{{{0, 0, 0}, 0}, { 307.25f, -122.5f}, true},
+	{{{0, 0, 0}, 0}, {-307.25f, -42.5f}, true},
+	{{{0, 0, 0}, 0}, {-230.0f,  -42.5f}, true},
+	{{{0, 0, 0}, 0}, {-152.75f, -42.5f}, true},
+	{{{0, 0, 0}, 0}, {-75.5f,   -42.5f}, true},
+	{{{0, 0, 0}, 0}, { 0.0f,    -42.5f}, true},
+	{{{0, 0, 0}, 0}, { 75.5f,   -42.5f}, true},
+	{{{0, 0, 0}, 0}, { 152.75f, -42.5f}, true},
+	{{{0, 0, 0}, 0}, { 230.0f,  -42.5f}, true},
+	{{{0, 0, 0}, 0}, { 307.25f, -42.5f}, true}
+};
+vec2s trashSlotPos = {230.0f,  80.8125f};
+vec2s trashSlotSize = {67.5f, 67.5f};
+Slot mouseSlot = {{{0, 0, 0}, 0}, { 0.0f, 0.0f}, true};
+uint8_t mouseLastSlot = 255; // 255 = -1
+
+vec2s mousePos = {0.0f, 0.0f};
 
 int main(int argc, const char *argv[])
 {
@@ -135,6 +194,9 @@ int main(int argc, const char *argv[])
 
 	crosshair = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	crosshair = MakeTexture("res/textures/simple_crosshair.png", &crosshair, true);
+
+	highlightSlot = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	highlightSlot = MakeTexture("res/textures/highlight.png", &highlightSlot, true);
 
 	for(int i = 0; i < (sizeof(voxels) / sizeof(voxels[0])) - 1; i++)
 	{
@@ -418,7 +480,7 @@ int main(int argc, const char *argv[])
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		time += deltaTime * 300;
+		time += deltaTime * 600;
 		if(time > TIME_MAX)
 		{
 			oldTime = 0.0f;
@@ -505,7 +567,7 @@ int main(int argc, const char *argv[])
 		cloudModel = glms_rotate(cloudModel, glm_rad(270.0f), (vec3s){1.0f, 0.0f, 0.0f});
 		cloudModel = glms_scale(cloudModel, (vec3s){1000.0f, 1000.0f, 1000.0f});
 		SetShaderMatrix4(&player.shader, "model", cloudModel, true);
-		SetShaderInteger(&player.shader, "fog", false, false);
+		SetShaderInteger(&player.shader, "fog", true, false);
 
 		glBindVertexArray(oCubeVAO);
 		glActiveTexture(GL_TEXTURE0);
@@ -514,12 +576,27 @@ int main(int argc, const char *argv[])
 
 		if(!player.inInventory)
 		{
-			RenderSpriteUI(&uiRenderer, &crosshair, (vec2s){0.0f, 0.0f}, 0.0f, (vec2s){0.025f, 0.025f}, (vec3s){1.0f, 1.0f, 1.0f});
-			RenderSpriteUI(&uiRenderer, &hotbarTexture, (vec2s){0.0f, -0.375f}, 90.0f, (vec2s){0.127f, 0.7f}, (vec3s){1.0f, 1.0f, 1.0f});
+			RenderSpriteUI(&uiRenderer, &crosshair, (vec2s){0.0f, 0.0f}, 0.0f, (vec2s){25.0f, 25.0f}, (vec3s){1.0f, 1.0f, 1.0f});
+			RenderSpriteUI(&uiRenderer, &highlightSlot, hotbarPos[currentSlot], 0.0f, (vec2s){127.0f, 127.0f}, (vec3s){1.0f, 1.0f, 1.0f});
+			for(uint8_t i = 0; i < sizeof(hotbarPos)/sizeof(hotbarPos[0]); i++)
+				if(!slots[i].empty)
+					RenderSpriteUI(&uiRenderer, &slots[i].itemStack.item.texture, hotbarPos[i], 270.0f, (vec2s){63.5f, 63.5f}, (vec3s){1.0f, 1.0f, 1.0f});
+			RenderSpriteUI(&uiRenderer, &hotbarTexture, (vec2s){0.0f, -375.0f}, 90.0f, (vec2s){127.0f, 700.0f}, (vec3s){1.0f, 1.0f, 1.0f});
 		}
-		RenderSpriteUI(&uiRenderer, &currentBlockItems[currentBlock - 1], (vec2s){-0.675f, -0.33f}, 270.0f, (vec2s){0.25f, 0.25f}, (vec3s){1.0f, 1.0f, 1.0f});
-		if(player.inInventory)
-			RenderSpriteUI(&uiRenderer, &inventoryTexture, (vec2s){0.0f, 0.0f}, 90.0f, (vec2s){0.75f, 0.75f}, (vec3s){1.0f, 1.0f, 1.0f});
+		else
+		{
+			if(!mouseSlot.empty)
+			{
+				mouseSlot.position.x = (mousePos.x-(screenWidth/2))*2;
+				mouseSlot.position.y = (-mousePos.y+(screenHeight/2))*2;
+				RenderSpriteUI(&uiRenderer, &mouseSlot.itemStack.item.texture, mouseSlot.position, 270.0f, (vec2s){67.5f, 67.5f}, (vec3s){1.0f, 1.0f, 1.0f});
+			}
+
+			for(uint8_t i = 0; i < sizeof(slots)/sizeof(slots[0]); i++)
+				if(!slots[i].empty)
+					RenderSpriteUI(&uiRenderer, &slots[i].itemStack.item.texture, slots[i].position, 270.0f, (vec2s){67.5f, 67.5f}, (vec3s){1.0f, 1.0f, 1.0f});
+			RenderSpriteUI(&uiRenderer, &inventoryTexture, (vec2s){0.0f, 0.0f}, 90.0f, (vec2s){750.0f, 750.0f}, (vec3s){1.0f, 1.0f, 1.0f});
+		}
 
 		glfwSwapBuffers(window);
 	}
@@ -629,6 +706,7 @@ void ProcessInput()
 				{
 					struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 					ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+					AddItemToInventory(slots, sizeof(slots)/sizeof(slots[0]), (Item){GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z), 1, currentBlockItems[GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z) - 1]});
 					EditVoxel(chunk, chunkBlock, 0);
 				}
 			}
@@ -652,11 +730,87 @@ void ProcessInput()
 		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
 		{
 			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
-			if(block.x >= 0 && block.y >= 0 && block.z >= 0)
+			if(block.x >= 0 && block.y >= 0 && block.z >= 0 && !slots[currentSlot].empty)
 			{
 				struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 				ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-				EditVoxel(chunk, chunkBlock, currentBlock);
+				EditVoxel(chunk, chunkBlock, slots[currentSlot].itemStack.item.ID);
+				slots[currentSlot] = DecreaseItemInIneventory(slots[currentSlot]);
+			}
+		}
+
+		if(GetKeyDown(GLFW_KEY_1))
+			currentSlot = 0;
+		if(GetKeyDown(GLFW_KEY_2))
+			currentSlot = 1;
+		if(GetKeyDown(GLFW_KEY_3))
+			currentSlot = 2;
+		if(GetKeyDown(GLFW_KEY_4))
+			currentSlot = 3;
+		if(GetKeyDown(GLFW_KEY_5))
+			currentSlot = 4;
+		if(GetKeyDown(GLFW_KEY_6))
+			currentSlot = 5;
+		if(GetKeyDown(GLFW_KEY_7))
+			currentSlot = 6;
+		if(GetKeyDown(GLFW_KEY_8))
+			currentSlot = 7;
+		if(GetKeyDown(GLFW_KEY_9))
+			currentSlot = 8;
+	}
+	else
+	{
+		if(GetKeyDown(GLFW_MOUSE_BUTTON_LEFT))
+		{
+			if(!mouseSlot.empty && CheckCollision2D((mousePos.x-(screenWidth/2))*2, (-mousePos.y+(screenHeight/2))*2, 0.0f, 0.0f, trashSlotPos.x, trashSlotPos.y, trashSlotSize.x, trashSlotSize.y))
+			{
+				mouseSlot = RemoveItemInInventory(mouseSlot);
+			}
+			else
+			{
+				for(uint8_t i = 0; i < sizeof(slots)/sizeof(slots[0]); i++)
+				{
+					if(mouseSlot.empty && !slots[i].empty && CheckCollision2D((mousePos.x-(screenWidth/2))*2, (-mousePos.y+(screenHeight/2))*2, 0.0f, 0.0f, slots[i].position.x, slots[i].position.y, 67.5f, 67.5f))
+					{
+						mouseSlot.itemStack = slots[i].itemStack;
+						mouseSlot.empty = false;
+						mouseLastSlot = i;
+						slots[i] = RemoveItemInInventory(slots[i]);
+					}
+					else if(!mouseSlot.empty && slots[i].empty && CheckCollision2D((mousePos.x-(screenWidth/2))*2, (-mousePos.y+(screenHeight/2))*2, 0.0f, 0.0f, slots[i].position.x, slots[i].position.y, 67.5f, 67.5f))
+					{
+						slots[i].itemStack = mouseSlot.itemStack;
+						slots[i].empty = false;
+						mouseLastSlot = 255;
+						mouseSlot = RemoveItemInInventory(mouseSlot);
+					}
+					else if(!mouseSlot.empty && !slots[i].empty && CheckCollision2D((mousePos.x-(screenWidth/2))*2, (-mousePos.y+(screenHeight/2))*2, 0.0f, 0.0f, slots[i].position.x, slots[i].position.y, 67.5f, 67.5f))
+					{
+						if(mouseSlot.itemStack.item.ID == slots[i].itemStack.item.ID && slots[i].itemStack.item.amount <= slots[i].itemStack.maxAmount-1)
+						{
+							slots[i].itemStack.item.amount += mouseSlot.itemStack.item.amount;
+							if(slots[i].itemStack.item.amount > slots[i].itemStack.maxAmount)
+							{
+								uint8_t remainder = slots[i].itemStack.item.amount - slots[i].itemStack.maxAmount;
+								slots[i].itemStack.item.amount = slots[i].itemStack.maxAmount;
+								mouseSlot.itemStack.item.amount = remainder;
+							}
+							else
+							{
+								mouseLastSlot = 255;
+								mouseSlot = RemoveItemInInventory(mouseSlot);
+							}
+						}
+						else
+						{
+							slots[mouseLastSlot].itemStack = slots[i].itemStack; // NOTE: There would be a glitch if you somehow you get a item added while dragging an item in inventory and your next open slot is the mouse last slot, so it would completly overwrite that item
+							slots[mouseLastSlot].empty = false;
+							slots[i].itemStack = mouseSlot.itemStack;
+							mouseLastSlot = 255;
+							mouseSlot = RemoveItemInInventory(mouseSlot);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -742,7 +896,7 @@ void FramebufferSizeCallback(GLFWwindow *window, int width, int height)
 	screenWidth = width;
 	screenHeight = height;
 	UpdateCameraPerspective(&player.camera, &player.shader, width, height);
-	//SetShaderMatrix4(&uiShader, "projection", glms_ortho(-((float)(width / igcd(width, height)) / 2.0f / 10.0f), (float)(width / igcd(width, height)) / 2.0f / 10.0f, -((float)(height / igcd(width, height)) / 2.0f / 10.0f), (float)(height / igcd(width, height) / 2.0f / 10.0f), -1.0f, 1.0f), true);
+	SetShaderMatrix4(&uiShader, "projection", glms_ortho(-width, width, -height, height, -1.0f, 1.0f), true);
 
 	glViewport(0, 0, width, height);
 }
@@ -751,6 +905,7 @@ bool firstMouse = true;
 float lastX, lastY = 0;
 void MouseCallback(GLFWwindow *window, double xPos, double yPos)
 {
+	mousePos = (vec2s){xPos, yPos};
     if(firstMouse)
     {
         lastX = xPos;
@@ -785,17 +940,17 @@ void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 	{
 		if(yOffset > 0)
 		{
-			if(currentBlock == (sizeof(voxels) / sizeof(voxels[0])) - 1)
-				currentBlock = 1;
+			if(currentSlot == 8)
+				currentSlot = 0;
 			else
-				currentBlock++;
+				currentSlot++;
 		}
 		else if(yOffset < 0)
 		{
-			if(currentBlock == 1)
-				currentBlock = (sizeof(voxels) / sizeof(voxels[0])) - 1;
+			if(currentSlot == 0)
+				currentSlot = 8;
 			else
-				currentBlock--;
+				currentSlot--;
 		}
 	}
 }

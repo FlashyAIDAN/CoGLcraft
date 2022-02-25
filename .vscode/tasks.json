@@ -20,6 +20,7 @@
                 "${workspaceFolder}\\src\\structure.c",
                 "${workspaceFolder}\\src\\ui.c",
                 "${workspaceFolder}\\src\\player.c",
+                "${workspaceFolder}\\src\\inventory.c",
                 "${workspaceFolder}\\src\\utils\\shader.c",
                 "${workspaceFolder}\\src\\utils\\texture.c",
                 "${workspaceFolder}\\src\\utils\\camera.c",
@@ -36,7 +37,8 @@
                 "-std=c11",
                 "-O3", // If errors fallback
                 "-Ofast", // Might cause errors because it does more inaccurate math
-                "-static"
+                "-static",
+                "-fcommon" // Previous versions of gcc were more lenient about multiple definitions of uninitialised global variables. In the latest gcc, they changed the default of -fcommon to -fno-common, which does not allow such duplicates.
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -82,7 +84,8 @@
                 "-mwindows",
                 "-O3", // If errors fallback
                 "-Ofast", // Might cause errors because it does more inaccurate math
-                "-static"
+                "-static",
+                "-fcommon" // Previous versions of gcc were more lenient about multiple definitions of uninitialised global variables. In the latest gcc, they changed the default of -fcommon to -fno-common, which does not allow such duplicates. 
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

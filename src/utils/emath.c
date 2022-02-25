@@ -2,6 +2,9 @@
 
 int igcd(int x, int y)
 {
+    if(x == 0 || y == 0)
+        return 0;
+
     x = ( x > 0) ? x : -x;
     y = ( y > 0) ? y : -y;
 

@@ -127,7 +127,7 @@ void WorldStart(struct Shader *shader, ivec2s currentChunk)
 
 	for(int i = 0; i < VectorTotalivec3s(&startMesh); i++)
 	{
-		CreateVertices(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z], true);
+		CreateVertices(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
 		//CreateChunkBufferData(dimensions[VectorGetivec3s(&startMesh, i).x].chunks[VectorGetivec3s(&startMesh, i).y][VectorGetivec3s(&startMesh, i).z]);
 	}
 	VectorFreeivec3s(&startMesh);
@@ -189,7 +189,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 		VectorFreevectorvoxelmod(&modifications);
 		VectorInitvectorvoxelmod(&modifications);
 		
-		CreateVertices(currentChunk, true);
+		CreateVertices(currentChunk);
 	 	//CreateChunkBufferData(currentChunk);
 		VectorDeleteivec2s(&updateMesh, 0);
 	}
@@ -197,7 +197,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	{
 		struct Chunk *currentChunk = dimensions[0].chunks[VectorGetivec2s(&makeMesh, 0).x][VectorGetivec2s(&makeMesh, 0).y];
 		currentChunk->inVector = false;
-		CreateVertices(currentChunk, true);
+		CreateVertices(currentChunk);
 	 	//CreateChunkBufferData(currentChunk);
 		VectorDeleteivec2s(&makeMesh, 0);
 	}
@@ -206,7 +206,7 @@ void WorldRender(struct Texture2D *texture, struct Shader *shader)
 	{
 		struct Chunk *currentChunk = dimensions[0].chunks[VectorGetivec2s(&modifyMesh, d).x][VectorGetivec2s(&modifyMesh, d).y];
 		ClearChunk(currentChunk);
-		CreateVertices(currentChunk, true);
+		CreateVertices(currentChunk);
 	 	//CreateChunkBufferData(currentChunk);
 		currentChunk->modified = false;
 		d++;
@@ -256,7 +256,7 @@ void WorldDelete()
 						}
 					}
 
-				fclose(f);
+					fclose(f);
 				}
 			}
 		}
@@ -268,7 +268,10 @@ void WorldDelete()
 		{
 			for(int z = 0; z < NUMBER_OF_CHUNKS_Z; z++)
 			{
-				DeleteChunk(dimensions[i].chunks[x][z]);
+				if(dimensions[i].chunks[x][z] != 0)
+				{
+					DeleteChunk(dimensions[i].chunks[x][z]);
+				}
 			}
 		}
 	}
@@ -285,11 +288,10 @@ void UpdateViewDistance(ivec2s currentChunk) // TODO(Aidan): Maybe find a way of
 		{
 			if (IsChunkInWorld((ivec2s){x, z}))
 			{
-				if (dimensions[0].chunks[x][z] == 0 && !dimensions[0].chunks[x][z]->inVector)
+				if (dimensions[0].chunks[x][z] == 0)
 				{
 					dimensions[0].chunks[x][z] = malloc(sizeof(struct Chunk));
 					MakeChunk(dimensions[0].chunks[x][z], x, 0, z);
-					dimensions[0].chunks[x][z]->inVector = true;
 					VectorPushBackivec2s(&updateMesh, (ivec2s){x, z});
 				}
 				else if(dimensions[0].chunks[x][z]->populated && !dimensions[0].chunks[x][z]->renderable && !dimensions[0].chunks[x][z]->inVector)
