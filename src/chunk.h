@@ -64,7 +64,7 @@ struct Voxel
     struct VoxelMeshMod voxelMeshMod;
 };
 
-struct Voxel voxels[19];
+struct Voxel voxels[20];
 
 float chunkGlobalLightLevel;
 

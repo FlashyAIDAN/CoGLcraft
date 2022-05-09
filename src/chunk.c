@@ -8,7 +8,7 @@ defineFuntionsVector(float, 0);
 defineFuntionsVector(int, 0);
 defineFuntionsVector(voxelmod, ((struct VoxelMod){(ivec3s){0, 0, 0}, 0}))
 
-struct Voxel voxels[19] =
+struct Voxel voxels[20] =
 {
 	{"Air", 0.0f, 1.0f, -1, -1, -1, -1, -1, -1, 0, true, true, false, false, false, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
 	{"Dirt", 5.0f, 0.0f, 242, 242, 242, 242, 242, 242, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
@@ -28,7 +28,8 @@ struct Voxel voxels[19] =
 	{"Redstone Ore", 20.0f, 0.0f, 195, 195, 195, 195, 195, 195, 15, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
 	{"Sand", 5.0f, 0.0f, 226, 226, 226, 226, 226, 226, 0, false, false, false, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
 	{"Cactus", 5.0f, 0.0f, 182, 182, 182, 182, 181, 183, 0, false, true, true, false, true, true, true, true, true, false, false, {{0.0f, 0.0f, -0.05f}, {0.0f, 0.0f, 0.05f}, {0.05f, 0.0f, 0.0f}, {-0.05f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
-	{"Rose", 1.0f, 0.0f, 252, 252, 252, 252, 252, 252, 0, false, true, true, true, false, true, true, true, true, true, true, {{0.0f, 0.0f, -0.5f}, {0.0f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f}, {-0.5f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}}
+	{"Rose", 1.0f, 0.0f, 252, 252, 252, 252, 252, 252, 0, false, true, true, true, false, true, true, true, true, true, true, {{0.0f, 0.0f, -0.5f}, {0.0f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f}, {-0.5f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}},
+	{"Crafting Table", 5.0f, 1.0f, 188, 188, 188, 188, 189, 190, 0, false, true, true, false, true, false, false, false, false, false, false, {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, -0.5f, 0.0f}, {0.0f, 0.0f, 0.0f}}}
 };
 
 float verticeData[8][3] = 

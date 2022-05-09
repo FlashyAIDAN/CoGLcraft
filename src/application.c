@@ -100,42 +100,42 @@ vec2s hotbarPos[9] =
 };
 Slot slots[36] =
 {
-	{{{0, 0, 0}, 0}, {-307.25f, -302.5f}, true},
-	{{{0, 0, 0}, 0}, {-230.0f,  -302.5f}, true},
-	{{{0, 0, 0}, 0}, {-152.75f, -302.5f}, true},
-	{{{0, 0, 0}, 0}, {-75.5f,   -302.5f}, true},
-	{{{0, 0, 0}, 0}, { 0.0f,    -302.5f}, true},
-	{{{0, 0, 0}, 0}, { 75.5f,   -302.5f}, true},
-	{{{0, 0, 0}, 0}, { 152.75f, -302.5f}, true},
-	{{{0, 0, 0}, 0}, { 230.0f,  -302.5f}, true},
-	{{{0, 0, 0}, 0}, { 307.25f, -302.5f}, true},
-	{{{0, 0, 0}, 0}, {-307.25f, -202.5f}, true},
-	{{{0, 0, 0}, 0}, {-230.0f,  -202.5f}, true},
-	{{{0, 0, 0}, 0}, {-152.75f, -202.5f}, true},
-	{{{0, 0, 0}, 0}, {-75.5f,   -202.5f}, true},
-	{{{0, 0, 0}, 0}, { 0.0f,    -202.5f}, true},
-	{{{0, 0, 0}, 0}, { 75.5f,   -202.5f}, true},
-	{{{0, 0, 0}, 0}, { 152.75f, -202.5f}, true},
-	{{{0, 0, 0}, 0}, { 230.0f,  -202.5f}, true},
-	{{{0, 0, 0}, 0}, { 307.25f, -202.5f}, true},
-	{{{0, 0, 0}, 0}, {-307.25f, -122.5f}, true},
-	{{{0, 0, 0}, 0}, {-230.0f,  -122.5f}, true},
-	{{{0, 0, 0}, 0}, {-152.75f, -122.5f}, true},
-	{{{0, 0, 0}, 0}, {-75.5f,   -122.5f}, true},
-	{{{0, 0, 0}, 0}, { 0.0f,    -122.5f}, true},
-	{{{0, 0, 0}, 0}, { 75.5f,   -122.5f}, true},
-	{{{0, 0, 0}, 0}, { 152.75f, -122.5f}, true},
-	{{{0, 0, 0}, 0}, { 230.0f,  -122.5f}, true},
-	{{{0, 0, 0}, 0}, { 307.25f, -122.5f}, true},
-	{{{0, 0, 0}, 0}, {-307.25f, -42.5f}, true},
-	{{{0, 0, 0}, 0}, {-230.0f,  -42.5f}, true},
-	{{{0, 0, 0}, 0}, {-152.75f, -42.5f}, true},
-	{{{0, 0, 0}, 0}, {-75.5f,   -42.5f}, true},
-	{{{0, 0, 0}, 0}, { 0.0f,    -42.5f}, true},
-	{{{0, 0, 0}, 0}, { 75.5f,   -42.5f}, true},
-	{{{0, 0, 0}, 0}, { 152.75f, -42.5f}, true},
-	{{{0, 0, 0}, 0}, { 230.0f,  -42.5f}, true},
-	{{{0, 0, 0}, 0}, { 307.25f, -42.5f}, true}
+	{{{0, 0, 0, 0}, 0}, {-307.25f, -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-230.0f,  -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-152.75f, -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-75.5f,   -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 0.0f,    -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 75.5f,   -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 152.75f, -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 230.0f,  -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 307.25f, -302.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-307.25f, -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-230.0f,  -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-152.75f, -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-75.5f,   -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 0.0f,    -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 75.5f,   -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 152.75f, -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 230.0f,  -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 307.25f, -202.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-307.25f, -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-230.0f,  -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-152.75f, -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-75.5f,   -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 0.0f,    -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 75.5f,   -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 152.75f, -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 230.0f,  -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 307.25f, -122.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-307.25f, -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-230.0f,  -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-152.75f, -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, {-75.5f,   -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 0.0f,    -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 75.5f,   -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 152.75f, -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 230.0f,  -42.5f}, true},
+	{{{0, 0, 0, 0}, 0}, { 307.25f, -42.5f}, true}
 };
 vec2s trashSlotPos = {230.0f,  80.8125f};
 vec2s trashSlotSize = {67.5f, 67.5f};
@@ -253,8 +253,24 @@ int main(int argc, const char *argv[])
 
 	player = MakePlayer(playerShader, screenWidth, screenHeight);
 	player.position = (vec3s){ (NUMBER_OF_CHUNKS_X / 2) * CHUNK_SIZE_X , CHUNK_SIZE_Y - (CHUNK_SIZE_Y - 100) + 10, (NUMBER_OF_CHUNKS_Z / 2) * CHUNK_SIZE_Z };
-	if(access( "res/saves/main/player/player.data", 0 ) != -1)
+	if(access("res/saves/main/player/player.data", 0 ) != -1)
 		LoadPlayer(&player);
+	else
+		printf("Cant Load Player!");
+	if(access("res/saves/main/player/inventory.data", 0 ) != -1)
+	{
+		LoadInventory(slots, (sizeof(slots)/sizeof(slots[0])));
+		for(int i = 0; i < sizeof(slots)/sizeof(slots[0]); i++)
+		{
+			if(!slots[i].empty)
+			{
+				//printf("%i\n", i);
+				slots[i].itemStack.item.texture = currentBlockItems[slots[i].itemStack.item.ID - 1];
+			}
+		}
+	}
+	else
+		printf("Cant Load Inventory!");
 	
 	uiRenderer = MakeUIrenderer(uiShader, screenWidth, screenHeight);
 
@@ -626,12 +642,28 @@ int main(int argc, const char *argv[])
 
 	DeleteUIrenderer(&uiRenderer);
 
+	DeleteInventory(slots, (sizeof(slots)/sizeof(slots[0])));
 	DeletePlayer(&player);
 	SimplexFree();
 	WorldDelete();
 
 	glfwTerminate();
 	return 0;
+}
+
+bool Compareivec3s(ivec3s v, ivec3s v2)
+{
+	if(v.x == v2.x && v.y == v2.y && v.z == v2.z)
+		return true;
+	return false;
+}
+
+bool PlayerOverlapBlock(ivec3s pos)
+{
+	ivec3s pPos = (ivec3s){(int)player.position.x, (int)player.position.y, (int)player.position.z};
+	if(Compareivec3s((ivec3s){pos.x, pos.y, pos.z}, pPos) || Compareivec3s((ivec3s){pos.x, pos.y - 1, pos.z}, pPos))
+		return true;
+	return false;
 }
 
 void ProcessInput()
@@ -706,7 +738,7 @@ void ProcessInput()
 				{
 					struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 					ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-					AddItemToInventory(slots, sizeof(slots)/sizeof(slots[0]), (Item){GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z), 1, currentBlockItems[GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z) - 1]});
+					AddItemToInventory(slots, sizeof(slots)/sizeof(slots[0]), (Item){GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z), 1, currentBlockItems[GetVoxel(chunk, chunkBlock.x, chunkBlock.y, chunkBlock.z) - 1], Block});
 					EditVoxel(chunk, chunkBlock, 0);
 				}
 			}
@@ -727,10 +759,10 @@ void ProcessInput()
 			playerBreaking = false;
 			currentBlockBreakingHealth = currentBlockBreakingMaxHealth;
 		}
-		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
+		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT) && slots[currentSlot].itemStack.item.type == Block)
 		{
 			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
-			if(block.x >= 0 && block.y >= 0 && block.z >= 0 && !slots[currentSlot].empty)
+			if(block.x >= 0 && block.y >= 0 && block.z >= 0 && !slots[currentSlot].empty && !PlayerOverlapBlock(block))
 			{
 				struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 				ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};

@@ -67,6 +67,7 @@
                 "${workspaceFolder}\\src\\structure.c",
                 "${workspaceFolder}\\src\\ui.c",
                 "${workspaceFolder}\\src\\player.c",
+                "${workspaceFolder}\\src\\inventory.c",
                 "${workspaceFolder}\\src\\utils\\shader.c",
                 "${workspaceFolder}\\src\\utils\\texture.c",
                 "${workspaceFolder}\\src\\utils\\camera.c",

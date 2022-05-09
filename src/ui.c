@@ -6,7 +6,7 @@ struct UIrenderer MakeUIrenderer(struct Shader shader, unsigned int width, unsig
     uiRenderer.shader = shader;
     uiRenderer.VAO = 0;
     SetShaderInteger(&uiRenderer.shader, "sprite", 0, true);
-	SetShaderMatrix4(&uiRenderer.shader, "projection", glms_ortho(-width, width, -height, height, -1.0f, 1.0f), false);
+	SetShaderMatrix4(&uiRenderer.shader, "projection", glms_ortho((int)-width, width, (int)-height, height, -1.0f, 1.0f), false);
     
     float uiVertices[16] =
 	{
