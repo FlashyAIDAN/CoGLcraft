@@ -28,7 +28,7 @@ struct Player MakePlayer(struct Shader shader, unsigned int screenWidth, unsigne
 	player.sensitivity = 0.3f;
 	player.isGrounded = false;
 	player.isSprinting = false;
-	player.inInventory = false;
+	player.inGUI = false;
 
 	player.checkIncrement = 0.1f;
 	player.reach = 8.0f;

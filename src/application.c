@@ -26,11 +26,11 @@
 
 #define TIME_MAX 2400
 
-#define DAY_COLOR_R 0.25f
-#define DAY_COLOR_G 0.25f
+#define DAY_COLOR_R 0.6f
+#define DAY_COLOR_G 0.8f
 #define DAY_COLOR_B 1.0f
-#define NIGHT_COLOR_R 0.0f
-#define NIGHT_COLOR_G 0.0f
+#define NIGHT_COLOR_R 0.15f
+#define NIGHT_COLOR_G 0.2f
 #define NIGHT_COLOR_B 0.75f
 
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
@@ -64,6 +64,8 @@ struct Texture2D inventoryTexture;
 struct Texture2D hotbarTexture;
 struct Texture2D breakTexture[10];
 struct Texture2D cloudsTexture;
+struct Texture2D currentGUITexture;
+struct Texture2D craftingGUI;
 struct Shader uiShader;
 struct Shader playerShader;
 struct Player player;
@@ -219,6 +221,8 @@ int main(int argc, const char *argv[])
 	}
 	inventoryTexture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	inventoryTexture = MakeTexture("res/textures/updated_inventory.png", &inventoryTexture, false);
+	craftingGUI = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+	craftingGUI = MakeTexture("res/textures/crafting_menu.png", &craftingGUI, false);
 
 	hotbarTexture = CreateTextureData(GL_RGBA, GL_RGBA, GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 	hotbarTexture = MakeTexture("res/textures/hotbar.png", &hotbarTexture, false);
@@ -496,7 +500,7 @@ int main(int argc, const char *argv[])
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		time += deltaTime * 600;
+		time += deltaTime;
 		if(time > TIME_MAX)
 		{
 			oldTime = 0.0f;
@@ -590,7 +594,7 @@ int main(int argc, const char *argv[])
     	BindTexture(&cloudsTexture);
 		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
-		if(!player.inInventory)
+		if(!player.inGUI)
 		{
 			RenderSpriteUI(&uiRenderer, &crosshair, (vec2s){0.0f, 0.0f}, 0.0f, (vec2s){25.0f, 25.0f}, (vec3s){1.0f, 1.0f, 1.0f});
 			RenderSpriteUI(&uiRenderer, &highlightSlot, hotbarPos[currentSlot], 0.0f, (vec2s){127.0f, 127.0f}, (vec3s){1.0f, 1.0f, 1.0f});
@@ -611,7 +615,7 @@ int main(int argc, const char *argv[])
 			for(uint8_t i = 0; i < sizeof(slots)/sizeof(slots[0]); i++)
 				if(!slots[i].empty)
 					RenderSpriteUI(&uiRenderer, &slots[i].itemStack.item.texture, slots[i].position, 270.0f, (vec2s){67.5f, 67.5f}, (vec3s){1.0f, 1.0f, 1.0f});
-			RenderSpriteUI(&uiRenderer, &inventoryTexture, (vec2s){0.0f, 0.0f}, 90.0f, (vec2s){750.0f, 750.0f}, (vec3s){1.0f, 1.0f, 1.0f});
+			RenderSpriteUI(&uiRenderer, &currentGUITexture, (vec2s){0.0f, 0.0f}, 90.0f, (vec2s){750.0f, 750.0f}, (vec3s){1.0f, 1.0f, 1.0f});
 		}
 
 		glfwSwapBuffers(window);
@@ -705,7 +709,7 @@ void ProcessInput()
 	if(GetKeyDown(GLFW_KEY_F4))
 		player.position = (vec3s){ player.position.x, CHUNK_SIZE_Y, player.position.z };
 
-	if(!player.inInventory)
+	if(!player.inGUI)
 	{
 		if (GetKey(GLFW_KEY_W))
 			player.vertical = lerp(player.vertical, player.speed, player.acceleration);
@@ -759,15 +763,27 @@ void ProcessInput()
 			playerBreaking = false;
 			currentBlockBreakingHealth = currentBlockBreakingMaxHealth;
 		}
-		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT) && slots[currentSlot].itemStack.item.type == Block)
+		if(GetKeyDown(GLFW_MOUSE_BUTTON_RIGHT))
 		{
-			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
-			if(block.x >= 0 && block.y >= 0 && block.z >= 0 && !slots[currentSlot].empty && !PlayerOverlapBlock(block))
+			ivec3s block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, false);
+			if(block.x >= 0 && block.y >= 0 && block.z >= 0)
 			{
 				struct Chunk *chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
 				ivec3s chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
-				EditVoxel(chunk, chunkBlock, slots[currentSlot].itemStack.item.ID);
-				slots[currentSlot] = DecreaseItemInIneventory(slots[currentSlot]);
+				if(chunk->voxels[chunkBlock.x][chunkBlock.y][chunkBlock.z] == 19)
+				{
+					player.inGUI = true;
+					currentGUITexture = craftingGUI;
+					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				}
+				else if(!slots[currentSlot].empty && !PlayerOverlapBlock(block) && slots[currentSlot].itemStack.item.type == Block)
+				{
+					block = GetBlockLookedAt(player.camera.position, player.camera.front, player.reach, player.checkIncrement, true);
+					chunk = GetChunk((ivec2s){(int)floorf(block.x / CHUNK_SIZE_X), (int)floorf(block.z / CHUNK_SIZE_Z)});
+					chunkBlock = (ivec3s){block.x - chunk->position.x, block.y - chunk->position.y, block.z - chunk->position.z};
+					EditVoxel(chunk, chunkBlock, slots[currentSlot].itemStack.item.ID);
+					slots[currentSlot] = DecreaseItemInIneventory(slots[currentSlot]);
+				}
 			}
 		}
 
@@ -849,9 +865,12 @@ void ProcessInput()
 
 	if(GetKeyDown(GLFW_KEY_E))
 	{
-		player.inInventory = !player.inInventory;
-		if(player.inInventory)
+		player.inGUI = !player.inGUI;
+		if(player.inGUI)
+		{
+			currentGUITexture = inventoryTexture;
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
 		else
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
@@ -951,7 +970,7 @@ void MouseCallback(GLFWwindow *window, double xPos, double yPos)
     lastX = xPos;
     lastY = yPos;
 
-	if(!player.inInventory)
+	if(!player.inGUI)
 	{
 		xOffset *= player.camera.sensitivity;
 		yOffset *= player.camera.sensitivity;
@@ -968,7 +987,7 @@ void MouseCallback(GLFWwindow *window, double xPos, double yPos)
 
 void ScrollCallback(GLFWwindow *window, double xOffset, double yOffset)
 {
-	if(!player.inInventory)
+	if(!player.inGUI)
 	{
 		if(yOffset > 0)
 		{

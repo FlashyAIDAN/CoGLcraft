@@ -32,7 +32,7 @@ struct Player
 	float sensitivity; // 0.3f;
 	bool isGrounded;
 	bool isSprinting;
-	bool inInventory;
+	bool inGUI;
 
 	float checkIncrement; // 0.1f;
 	float reach; // 8.0f;

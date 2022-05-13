@@ -92,7 +92,7 @@ void LoadInventory(Slot* slots, uint8_t size)
     sscanf(strstr(str, s5) + strlen(s5), "%99s", word);
     int num = (int)strtol(word, (char **)NULL, 10);
     int numDigits = (num == 0) ? 1 : (log10(num) + 1);
-    str += 12 + numDigits;
+    str += 13 + numDigits; // \n counts as 2
 
     for(int s = 0; s < num; s++)
     {
@@ -109,6 +109,6 @@ void LoadInventory(Slot* slots, uint8_t size)
         slots[i].itemStack.item.type = (int)strtol(word, (char **)NULL, 10);
         int typeDigits = (slots[i].itemStack.item.type == 0) ? 1 : (log10(slots[i].itemStack.item.type) + 1);
         slots[i].empty = false;
-        str += 28 + slotNumDigits + idDigits + amountDigits + typeDigits;
+        str += 32 + slotNumDigits + idDigits + amountDigits + typeDigits;
     }
 }
